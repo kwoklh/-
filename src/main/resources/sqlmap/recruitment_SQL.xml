@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.RecruitmentMapper">
+	<sql id="where">
+		<if test="keyword!=null and keyword!=''">
+			<choose>
+				<when test="queGubun == 1">
+					AND (RECU_NO LIKE '%' || #{keyword} || '%')
+				</when>
+				<when test="queGubun == 2">
+					AND (RECU_TITLE LIKE '%' || #{keyword} || '%')
+				</when>
+				<when test="queGubun == 3">
+					AND (RECU_END_WRITER LIKE '%' || #{keyword} || '%')
+				</when>
+				<when test="queGubun == 4">
+					AND (RECU_FIRST_DATE LIKE '%' || #{keyword} || '%')
+				</when>
+				<when test="queGubun == 5">
+					AND (RECU_VIEWS LIKE '%' || #{keyword} || '%')
+				</when>
+			</choose>
+		</if>
+	</sql>
+	<select id="recruitmentTotal" resultType="int" parameterType="hashMap">
+		SELECT COUNT(*)
+	   		FROM recruitment
+	    WHERE 1=1
+	    <include refid="where"></include>
+	</select>
+	
+	<resultMap type="kr.or.ddit.vo.RecruitmentVO" id="recruitmentVOListMap">
+		<result property="recuNo" column="RECU_NO"/>
+		<result property="userNo" column="USER_NO"/>
+		<result property="recuTitle" column="RECU_TITLE"/>
+		<result property="recuContent" column="RECU_CONTENT"/>
+		<result property="recuViews" column="RECU_VIEWS"/>
+		<result property="recuFirstDate" column="RECU_FIRST_DATE"/>
+		<result property="recuEndDate" column="RECU_END_DATE"/>
+		<result property="recuEndWriter" column="RECU_END_WRITER"/>
+		<result property="recuDelYn" column="RECU_DEL_YN"/>
+<!-- 		<result property="recuAttFile" column="RECU_ATT_FILE"/>	 -->
+		<collection property="userInfoVOList" resultMap="userListMap"></collection>
+	</resultMap>
+	<resultMap type="userInfoVO" id="userListMap">
+		<result property="userNo" column="USER_NO"/>
+		<result property="userName" column="USER_NAME"/>
+		<result property="userPass" column="USER_PASS"/>
+		<result property="userTel" column="USER_TEL"/>
+		<result property="userGubun" column="USER_GUBUN"/>
+		<result property="enabled" column="ENABLED"/>
+	</resultMap>
+	<select id="recruitmentVOList" parameterType= "hashMap" resultMap="recruitmentVOListMap">
+		SELECT T.*
+				FROM
+				(SELECT ROW_NUMBER() OVER(ORDER BY to_number(RECU_NO) DESC) RNUM
+              , A.recu_no
+              , A.user_no
+              , A.recu_title
+              , A.recu_content
+              , A.recu_views
+              , A.recu_first_date
+              , A.recu_end_date
+              , A.recu_end_writer
+              , A.recu_del_yn
+              , A.recu_att_file
+              , B.user_name
+              , B.user_gubun
+              , B.enabled
+        	 FROM
+            	recruitment A
+            	,user_info B
+	         WHERE 1=1
+              AND USER_GUBUN='03'
+              AND ENABLED='1'
+              <include refid="where"></include>
+              )T
+              WHERE T.RNUM BETWEEN ((#{currentPage} * 10)-(10-1)) AND (#{currentPage} * 10)	
+	</select>
+</mapper>

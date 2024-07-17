@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="profTimeTable">
+
+	<resultMap type="kr.or.ddit.vo.LectureVO" id="profLecListMap">
+		<result property="lecNo" column="LEC_NO"/>
+		<result property="lecName" column="LEC_NAME"/>
+		<result property="lecCol" column="LEC_COL"/>
+		<association property="lectureRoomVO" resultMap="lectureRoomVOMap"></association>
+		<association property="lecTimeVO" resultMap="lecTimeVOMap"></association>
+	</resultMap>
+	<resultMap type="kr.or.ddit.vo.LectureRoomVO" id="lectureRoomVOMap">
+		<result property="lecRoName" column="LEC_RO_NAME"/>
+	</resultMap>
+	<resultMap type="kr.or.ddit.vo.LecTimeVO" id="lecTimeVOMap">
+		<result property="lecDay" column="LEC_DAY"/>
+		<result property="lecSt" column="LEC_ST"/>
+		<result property="lecEnd" column="LEC_END"/>
+	</resultMap>
+
+	<select id="profLecList" parameterType="String" resultMap="profLecListMap">
+		select a.lec_no
+			, a.lec_name
+			, c.lec_ro_name
+			, a.lec_col
+			, b.lec_day
+			, b.lec_st
+			, b.lec_end
+<!-- 			, a.lec_semester -->
+<!-- 			, TO_CHAR(SYSDATE, 'YYYY') as lec_year -->
+		from lecture a, lec_time b, lecture_room c
+		where a.pro_no = #{userNo}
+		and a.lec_no = b.lec_no
+		and a.lec_ro_no = c.lec_ro_no
+		and a.lec_year = TO_CHAR(SYSDATE, 'YYYY')
+		AND(
+		    (TO_CHAR(SYSDATE, 'MM') BETWEEN '01' AND '06' AND a.LEC_SEMESTER = '1')
+		    OR (TO_CHAR(SYSDATE, 'MM') BETWEEN '07' AND '12' AND a.LEC_SEMESTER = '2')
+		    )
+	</select>
+	
+</mapper>

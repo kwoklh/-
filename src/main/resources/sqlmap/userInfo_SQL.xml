@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.UserInfoMapper">
+
+	<resultMap type="userInfoVO" id="userInfoMap">
+		<result property="userNo" column="USER_NO"/>
+		<result property="userName" column="USER_NAME"/>
+		<result property="userPass" column="USER_PASS"/>
+		<result property="userTel" column="USER_TEL"/>
+		<result property="userGubun" column="USER_GUBUN"/>
+		<result property="enabled" column="ENABLED"/>
+		<result property="url" column="URL"/>
+		<result property="deptName" column="DEPT_NAME"/>
+		<collection property="authorityVOList" resultMap="authorityVOMap" />
+	</resultMap>
+	
+	<resultMap type="authorityVO" id="authorityVOMap">
+		<result property="authority" column="AUTHORITY"/>
+		<result property="userNo" column="USER_NO"/>
+	</resultMap>
+	
+	<select id="detail" parameterType="String" resultMap="userInfoMap">
+		SELECT
+	    A.user_no
+	  , A.user_name
+	  , A.user_pass
+	  , A.user_tel
+	  , A.user_gubun
+	  , A.enabled
+	  , B.authority
+	  , CASE 
+			WHEN(a.USER_GUBUN = '01')	THEN (
+		                                        select 
+                                                    stu_file_path url
+                                                from 
+                                                    stu_attach_file a,
+                                                    (
+                                                        select max(stu_att_no) stu_att_no
+                                                        from stu_attach_file
+                                                        where st_no = #{userNo}
+                                                        and 
+                                                            stu_gubun = '증명사진'
+                                                        order by stu_att_no desc
+                                                    ) b
+                                                where 
+                                                    a.stu_att_no = b.stu_att_no
+		                                     )
+			WHEN(a.USER_GUBUN = '02') 	THEN (
+		                                        select 
+		                                            phy_save_route url
+		                                        from 
+		                                            com_attach_det
+		                                        where 
+		                                            com_att_m_id = ( 
+		                                                select 
+		                                                    com_att_m_id 
+		                                                from 
+		                                                    professor 
+		                                                where 
+		                                                    pro_no = #{userNo}
+		                                                )
+		                                     )
+			WHEN(a.USER_GUBUN = '03') THEN '/resources/images/adminprofile.jpg'
+		END AS url
+	  ,	CASE 
+			WHEN(a.USER_GUBUN = '01')	THEN (
+                                        select 
+                                            COM_DET_CODE_NAME DEPT_NAME
+                                        from
+                                            COM_DET_CODE 
+                                        INNER JOIN
+                                            STUDENT 
+                                        ON
+                                            COM_DET_CODE = DEPT_CODE
+                                        WHERE
+                                            ST_NO = #{userNo}
+                                     )
+			WHEN(a.USER_GUBUN = '02') 	THEN (
+                                        select 
+                                            COM_DET_CODE_NAME DEPT_NAME
+                                        from
+                                            COM_DET_CODE A
+                                        INNER JOIN
+                                            PROFESSOR B
+                                        ON
+                                            A.COM_DET_CODE = B.DEPT_CODE
+                                        WHERE
+                                            PRO_NO = #{userNo}
+                                      )
+			WHEN(a.USER_GUBUN = '03') THEN NULL
+    	END AS DEPT_NAME
+		FROM
+		    user_info A
+		INNER JOIN 
+		    authority B
+		ON A.user_no = B.user_no
+		WHERE A.user_no = #{userNo}
+	</select>
+</mapper>

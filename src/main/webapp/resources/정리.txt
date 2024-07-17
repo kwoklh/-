@@ -1,0 +1,168 @@
+1. 스프링 시큐리티에서 submit할 때
+	1) <form 태그 사용시>
+			<sec:csrfInput />
+		</form>
+	2) ajax사용시 
+		beforeSend:function(xhr){
+					xhr.setRequestHeader("${_csrf.headerName}","${_csrf.token}");
+				},
+		success앞에 꼭쓰기
+	3) 파일 업로드 시 
+		"action", "/item/updatePost?${_csrf.parameterName}=${_csrf.token}"
+		"enctype" , "multupart/form-data"
+	
+	4) 만약 어쩔수없이csrf 비활성 처리가 필요하다면
+	   security-context.xml에서 <security:csrf disabled="true" /> 추가하기
+	
+2. 자동 로그인
+	1) 로그인하면 특정 시간 동안 다시 로그인 할 필요가 없는 기능
+	2) 스프링 시큐리티는 데이터베이스를 사용하여 처리  persistent_logins 테이블이용
+	3) security-context.xml 에서 remember-me 태그를 이용하여 구현
+
+3. 스프링 시큐리티 표현식
+	1) hasRole("ROLE_MEMBER") : 해당 롤이 있으면 true
+	2) hasAnyRole ("ROLE_MEMBER", "ROLE_ADMIN") : 여러 롤들 중에서 하나라도 해당하는 롤이 있으면 true
+	3) principal : 인증된 사용자의 사용자 정보(UserDetails 인터페이스를 구현한 클래스의 객체)
+	4) authentication : 인증된 사용자의 인증 정보 (Authentication 인터페이스를 구현한 클래스의 객체)
+	5) permitAll : 모든 사용자에게 허용
+	6) denyAll : 모든 사용자에게 거부
+	7) isAnonymous() : 익명의 사용자의 경우 (로그인을 하지 않은 경우도 해당)
+	8) isAuthenticated() : 인증된 사용자의 경우 true
+	9) isFullyAuthenticated() : Remember-me로 인증된 것이 아닌 일반적인 방법으로 인증된 사용자인 경우 true
+	
+	
+4. CKEditor 사용방법
+<script>
+	CKEDITOR.replace('editor');
+	//html 태그 사라지는 오류 해결
+	CKEDITOR.config.allowedContent = true;
+	//내용 미리 넣기
+	CKEDITOR.instances.editor.setData('<p>aaa</p>'); 
+	//ckeditor 안에 있는 내용을 태그 포함해서 다 가져오기
+	CKEDITOR.instances.editor.getData();
+	//입력란 읽기전용
+	$("#editor").attr("readOnly",true);
+	//입력란 활성화
+	CKEDITOR.instances['editor'].setReadOnly(false);
+</script>
+	
+	
+5. SBAdmin2 입력창 이미지 처리
+<style>
+.bg-register-image2 {
+  background-position: center;
+  background-size: cover;
+}
+</style>
+
+$("#row .bg-register-image2").css({"background-image":"url("+e.target.result+")"});
+
+<div class="col-lg-5 d-none d-lg-block bg-register-image2" 
+      style="background-image:url('https://source.unsplash.com/Mv9hjnEUHR4/600x800');">
+   </div>
+	
+	
+reader.onload = function(e){
+				//background-position:center;background-size:cover
+				$(".bg-register-image").css({"background-image":"url("+e.target.result+")","background-position":"center","background-size":"cover"});
+// 				console.log(e.target.result);
+			}
+	
+6. formData를 통해서 비동기 통신
+//아작났어유..피씨다타써
+$.ajax({
+	url:"",
+	processData:false,
+	contentType:false,
+	data:formData,
+	type:"post",
+	dataType:"json",
+	success:function(result){
+		console.log("result : ", result);
+	}
+});
+7. json을 통해서 비동기(Asynchronous) 통신
+//아작났어유..피씨다타써
+$.ajax({
+	url:"",
+	contentType:"application/json;charset=utf-8",
+	data:JSON.stringify(data),
+	type:"post",
+	dataType:"json",
+	success:function(result){
+		console.log("result : ", result);
+	}
+});
+	
+8. checkbox, select 요소 값 가져오기
+//체크박스에 체크된 값 가져오기
+let ePosition = $("input[name='ePosition']:checked").val();
+//select 박스의 값 가져오기
+//let eDept = $("select[name='eDept']").val();
+let eDept = $("#eDept option:selected").val();
+	
+9.구글 카멜변환
+/
+create or replace FUNCTION FN_GETCAMEL(COLUMN_NAME IN VARCHAR2)
+RETURN VARCHAR2
+IS
+RSLT VARCHAR2(30);
+BEGIN
+--카멜표기로 변환(SITE_NUM -> siteNum)
+SELECT LOWER(SUBSTR(REPLACE(INITCAP(COLUMN_NAME),'_'),1,1))
+|| SUBSTR(REPLACE(INITCAP(COLUMN_NAME),'_'),2) INTO RSLT
+FROM DUAL;
+--리턴
+RETURN RSLT;
+END;
+/
+
+--구글 카멜변환(https://heavenly-appear.tistory.com/270)
+SELECT COLUMN_NAME
+, DATA_TYPE
+, CASE WHEN DATA_TYPE='NUMBER' THEN 'private int ' || FN_GETCAMEL(COLUMN_NAME) || ';'
+WHEN DATA_TYPE IN('VARCHAR2','CHAR') THEN 'private String ' || FN_GETCAMEL(COLUMN_NAME) || ';'
+WHEN DATA_TYPE='DATE' THEN 'private Date ' || FN_GETCAMEL(COLUMN_NAME) || ';'
+ELSE 'private String ' || FN_GETCAMEL(COLUMN_NAME) || ';'
+END AS CAMEL_CASE
+, '<result property="'||FN_GETCAMEL(COLUMN_NAME)||'" column="'||COLUMN_NAME||'"/>' RESULTMAP
+FROM ALL_TAB_COLUMNS
+WHERE TABLE_NAME = 'WRITER'
+AND    OWNER = 'JSPEXAM';
+/
+	
+10. 모달 정리
+<!-- 모달을 띄우는 방법
+1. button으로 띄우기
+<button type="button" class="btn btn-default" 
+data-toggle="modal" data-target="#modal-default">
+Launch Default Modal
+</button>
+
+2. a 태그로 띄우기
+<a data-toggle="modal" href="#modal-default">Open Modal</a>
+
+3. 기타 요소로 띄우기
+<p data-toggle="modal" data-target="#modal-default">Open Modal</a>
+ -->
+<!-- bookVO -> attachVOList 멤버변수 -> List<AttachVO> 
+JSTL누적 : 
+
+c set var="auth" value=""
+
+c set var="auth" value="달러{auth += ' ' += 누적할값}
+-->
+	
+11. 양쪽정렬
+<nav class="navbar navbar-expand navbar-dark bg-dark">
+	<div class="container">
+		<div class="navbar-header" style="justify-content:left;display:flex;">
+			<a class="navbar-brand" href="/home">Home</a>
+		</div>
+		<button type="submit" class="btn btn-primary"
+		style="justify-content:right;display:flex;">로그아웃</button>
+	</div>
+</nav>
+	
+	
+	

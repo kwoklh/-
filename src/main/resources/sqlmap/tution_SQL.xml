@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.TutionMapper">
+
+	<resultMap type="kr.or.ddit.vo.ScolarshipHistoryVO"
+		id="scolarshipHistoryMap">
+		<result property="year" column="YEAR" />
+		<result property="scolDNo" column="SCOL_D_NO" />
+		<result property="scolMethod" column="SCOL_METHOD" />
+		<result property="semester" column="SEMESTER" />
+		<result property="scolCode" column="SCOL_CODE" />
+		<result property="stNo" column="ST_NO" />
+		<result property="scolarPay" column="scolarPay" />
+		<association property="studentVO" resultMap="studentMap"></association>
+		<association property="scolarshipVO"
+			resultMap="scolarshipMap"></association>
+	</resultMap>
+
+
+	<resultMap type="kr.or.ddit.vo.StudentVO" id="studentMap">
+		<result property="stNo" column="ST_NO" />
+		<result property="stGender" column="ST_GENDER" />
+		<result property="stPostno" column="ST_POSTNO" />
+		<result property="stAddr" column="ST_ADDR" />
+		<result property="stAddrDet" column="ST_ADDR_DET" />
+		<result property="stAcount" column="ST_ACOUNT" />
+		<result property="stBank" column="ST_BANK" />
+		<result property="militaryService" column="MILITARY_SERVICE" />
+		<result property="stEmail" column="ST_EMAIL" />
+		<result property="proChaNo" column="PRO_CHA_NO" />
+		<result property="admissionDate" column="ADMISSION_DATE" />
+		<result property="stGradDate" column="ST_GRAD_DATE" />
+		<result property="deptCode" column="DEPT_CODE" />
+		<result property="stGrade" column="ST_GRADE" />
+		<association property="deptTuitionPayVO" 
+		resultMap="deptTuitionPayVOMap"></association>
+		<!-- <association property="userInfoVO" -->
+		<!-- resultMap="userInfoVOMap"></association> -->
+		<!-- <association property="comDetCodeVO" -->
+		<!-- resultMap="comDetCodeVOMap"></association> -->
+		<!-- <association property="comCodeVO" resultMap="comCodeMap"></association> -->
+		<!-- <association property="stuAttachFileVO" -->
+		<!-- resultMap="stuAttachFileVOMap"></association> -->
+		<!-- <association property="studentStatVO" -->
+		<!-- resultMap="studentStatVOMap"></association> -->
+
+	</resultMap>
+	
+	<resultMap type="kr.or.ddit.vo.DeptTuitionPayVO" id="deptTuitionPayVOMap">
+	<result property="deptCode" column="DEPT_CODE"/>
+	<result property="year" column="YEAR"/>
+	<result property="deptTuiPay" column="DEPT_TUI_PAY"/>
+	</resultMap>
+
+
+	<resultMap type="kr.or.ddit.vo.ScolarshipVO"
+		id="scolarshipMap">
+		<result property="scolCode" column="SCOL_CODE" />
+		<result property="scolarshipRatio" column="SCOLARSHIP_RATIO" />
+		<result property="scolType" column="SCOL_TYPE" />
+		<result property="scolName" column="SCOL_NAME" />
+		<result property="scolGubun" column="SCOL_GUBUN" />
+	</resultMap>
+
+
+
+	<select id="list" parameterType="String" resultMap="scolarshipHistoryMap">
+
+<!-- 		SELECT A.*, B.*, c.admission_date -->
+<!-- 		FROM -->
+<!-- 		SCOLARSHIP A, SCOLARSHIP_HISTORY B, STUDENT C -->
+<!-- 		WHERE -->
+<!-- 		A.SCOL_CODE = B.SCOL_CODE AND -->
+<!-- 		B.ST_NO = C.ST_NO AND -->
+<!-- 		B.ST_NO = #{stNo} -->
+<!-- 		order by b.year desc, b.semester desc -->
+
+		SELECT A.*, B.*, c.admission_date, d.*, a.scolarship_ratio*d.dept_tui_pay scolarPay
+		FROM
+		SCOLARSHIP A, SCOLARSHIP_HISTORY B, STUDENT C, dept_tuition_pay d
+		WHERE
+		A.SCOL_CODE = B.SCOL_CODE AND
+		B.ST_NO = C.ST_NO AND
+        c.dept_code = d.dept_code and
+		B.ST_NO = #{stNo} 
+		order by b.year desc, b.semester desc
+
+
+	</select>
+	
+	<select id="depttui" parameterType="String" resultMap="studentMap">
+	
+	select a.*, b.* 
+	from student a, dept_tuition_pay b
+	where
+	a.dept_code = b.dept_code and
+	a.st_no = #{stNo}
+	
+	</select>
+	
+	
+<!-- 	조건 조회 -->
+
+	<select id="conlist" parameterType="scolarshipHistoryVO" resultMap="scolarshipHistoryMap">
+	
+		SELECT A.*, B.*, c.admission_date, d.*, a.scolarship_ratio*d.dept_tui_pay scolarPay
+		FROM
+		SCOLARSHIP A, SCOLARSHIP_HISTORY B, STUDENT C, dept_tuition_pay d
+		WHERE
+		A.SCOL_CODE = B.SCOL_CODE AND
+		B.ST_NO = C.ST_NO AND
+        c.dept_code = d.dept_code and
+		B.ST_NO = #{stNo} and
+        b.year = #{year} and b.semester = #{semester}
+		order by b.year desc, b.semester desc
+	
+	</select>
+
+
+</mapper>

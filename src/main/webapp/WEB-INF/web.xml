@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+         version="4.0">
+<!-- 
+web.xml : tomcat서버의 설정
+웹 프로젝트의 배포 설명자/배치 기술서(deployment description)이며, 웹 프로젝트가 배포되는 데 이용되는 XML 형식의
+자바 웹 애플리케이션 환경 설정 부분을 담당함
+스프링 웹 프로젝트가 실행되면 가장 먼저 web.xml 파일을 읽어들이고 위부터 차례로 태그를 해석함
+
+1) 네임 스페이스 : 코드에서 이름은 같지만 내용이 전혀 다른 요소와 충돌하지 않도록, 즉 이런 요소를 구별하는 데 사용함
+2) 스키마 : 코드의 구조와 요소, 속성의 관계를 정의하여 다양한 자료형을 사용할 수 있도록 정의된 문서 구조, 즉 틀을 의미함
+   xsi:schemaLocation 속성은 참조하고자 하는 인스턴스 문서의 URI를 지정함
+   					  두 개의 속성 값은 공백으로 구분. 첫 번째는 사용할 네임 스페이스(보통 기본 네임 스페이스와 동일)고,
+   					  					     두 번째는 참조할 스키마 파일 이름.
+-->
+
+	<!-- The definition of the Root Spring Container shared by all Servlets and Filters -->
+	<!-- context-param 
+	기본 설정 파일 외에 사용자가 직접 제어하는 XML 파일을 지정
+	context-param 요소에 설정된 root-context.xml 파일은 모든 서블릿과 필터에서 사용되는 루트 스프링 컨테이너(애플리케이션 컨텍스트, Ioc 컨테이너)설정임
+	 -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>/WEB-INF/spring/root-context.xml</param-value>
+	</context-param>
+	
+	<!-- Creates the Spring Container shared by all Servlets and Filters -->
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+
+	<!-- Processes application requests -->
+	<!-- ServletContext는 서블릿 하나가 서블릿 컨테이너와 통신할 때 사용되는 메서드들을 가지고 있는 클래스임.
+	웹 애플리케이션 안에 있는 모든 서블릿을 관리하며 정보를 공유할 수 있게 도와줌	
+	 -->
+	<servlet>
+		<servlet-name>appServlet</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>/WEB-INF/spring/appServlet/servlet-context.xml</param-value>
+		</init-param>
+		<!-- 404 오류를 처리할 수 있도록 설정 -->
+		<init-param>
+			<param-name>throwExceptionIfNoHandlerFound</param-name>
+			<param-value>true</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+		
+		<!-- web.xml의 설정은 WAS(Tomcat) 자체 설정일 뿐임. -->
+		<!-- multipart-config : 메모리사이즈, 업로드 파일 저장 위치, 최대 크기 설정 -->
+		<multipart-config>
+			<location>c:\\upload</location><!-- 업로드 되는 파일을 저장할 공간 -->
+			<max-file-size>20971520</max-file-size><!-- 업로드 파일의 최대 크기 1MB * 20 -->
+			<max-request-size>41943040</max-request-size><!-- 한 번에 올릴 수 있는 최대 크기 40MB -->
+			<file-size-threshold>20971520</file-size-threshold><!-- 메모리 사용 크기 20MB -->
+		</multipart-config>
+	</servlet>
+		
+	<servlet-mapping>
+		<servlet-name>appServlet</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+	<!-- 한글 처리 -->
+	<filter>
+		<filter-name>encodingFilter</filter-name>
+		<filter-class>
+			org.springframework.web.filter.CharacterEncodingFilter
+		</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+		<init-param>
+			<param-name>forceEncoding</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>encodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<!-- multipart filter 추가하기(한글 처리 다음에 넣기!!!) -->
+	<filter>
+		<display-name>springMultipartFilter</display-name>
+		<filter-name>springMultipartFilter</filter-name>
+		<filter-class>org.springframework.web.multipart.support.MultipartFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>springMultipartFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<!-- 스프링 시큐리티가 제공하는 서블릿 필터 클래스를 서블릿 컨테이너에 등록함 -->
+	<filter>
+		<filter-name>springSecurityFilterChain</filter-name>
+		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>springSecurityFilterChain</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<!-- 상태 코드를 사용하여 오류 페이지 설정 시작
+	HTTP 오류 코드 정리
+	- 400 : Bad Request. 문법 오류(잘못 입력한 url)
+	- 404* : Not Found. 요청한 문서를 찾지 못함(url확인 및 캐시 삭제가 필요한 상태)
+	- 405 : Method not allowed. 메소드 허용 안됨(메소드 매핑이 안 될 때 발생)
+	- 415 : 서버의 요청에 대한 승인 거부. (ContentType, Content Encoding 데이터 확인 필요)
+	- 500* : 서버 내부 오류. (웹 서버가 요청사항을 수행할 수 없을 때 발생)
+	- 505 : HTTP Version Not Supported.
+	 -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>400</error-code> -->
+<!-- 		<location>/error/error400</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>404</error-code> -->
+<!-- 		<location>/error/error404</location> -->
+<!-- 	</error-page> -->
+<!-- 	<error-page> -->
+<!-- 		<error-code>500</error-code> -->
+<!-- 		<location>/error/error500</location> -->
+<!-- 	</error-page> -->
+	<!-- 상태 코드를 사용하여 오류 페이지 설정 끝 -->
+	
+	<!-- 예외 타입을 사용한 에러 페이지 설정 시작 
+	웹 컨테이너(tomcat서버) 설정 파일(web.xml)의 exception-type 태그 요소에 예외 타입을 설정하고
+	location 요소에 이동 대상 페이지 및 URI를 지정함
+	
+	IOException, SQLException, NullPointerException, ArrayIndexOutOfBoundsException,
+	ArtimeticException(0으로 나눌경우)
+	-->
+<!-- 	<error-page> -->
+<!-- 		<exception-type>java.lang.Exception</exception-type> -->
+<!-- 		<location>/error/errorException</location> -->
+<!-- 	</error-page> -->
+	<!-- 예외 타입을 사용하여 오류 페이지 설정 시작 -->
+	
+	<!-- 기본 오류 페이지 설정 시작 -->
+<!-- 	<error-page> -->
+<!-- 		<location>/error/errorDefault</location> -->
+<!-- 	</error-page> -->
+	<!-- 기본 오류 페이지 설정 시작 -->
+</web-app>
+
+
+
+
+
+
+
+
+
+
+

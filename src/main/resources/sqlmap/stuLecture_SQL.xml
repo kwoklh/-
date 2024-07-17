@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.StuLectureMapper">
+	
+	<resultMap type="lectureRoomVO" id="lecturelectureRoomMap">
+		<result property="lecRoNo" column="LEC_RO_NO"/>
+		<result property="lecRoName" column="LEC_RO_NAME"/>
+		<result property="bldNo" column="BLD_NO"/>
+	<!-- 	<result property="lecRoPic" column="LEC_RO_PIC"/> -->
+		<result property="lecRPer" column="LEC_R_PER"/>
+	</resultMap>
+	
+	<resultMap type="lecTimeVO" id="lecTimeVOMap">
+		<result property="lecDay" column="LEC_DAY"/>
+		<result property="lecNo" column="LEC_NO"/>
+		<result property="lecSt" column="LEC_ST"/>
+		<result property="lecEnd" column="LEC_END"/>
+	</resultMap>
+	 
+	<resultMap type="lectureVO" id="lectureListMap">
+		<result property="lecNo" column="LEC_NO"/>
+		<result property="proNo" column="PRO_NO"/>
+		<result property="lecYear" column="LEC_YEAR"/>
+		<result property="lecSemester" column="LEC_SEMESTER"/>
+		<result property="lecPer" column="LEC_PER"/>
+		<result property="lecName" column="LEC_NAME"/>
+		<result property="lecType" column="LEC_TYPE"/>
+		<result property="lecScore" column="LEC_SCORE"/>
+		<result property="deptCode" column="DEPT_CODE"/>
+		<result property="lecDiv" column="LEC_DIV"/>
+		<result property="lecCol" column="LEC_COL"/>
+		<collection property="lectureRoomVO" resultMap="lecturelectureRoomMap"></collection>
+		<collection property="lecTimeVO" resultMap="lecTimeVOMap"></collection>
+		
+		<collection property="userInfoVO" resultMap="userInfoVOMap"></collection>
+		<collection property="comDetCodeVO" resultMap="comDetCodeVOMap"></collection>
+	</resultMap>
+	
+	<resultMap type="stuLectureVO" id="stuLectureList">
+		<result property="suNum" column="SU_NUM"/>
+		<result property="stuLecNo" column="STU_LEC_NO"/>
+		<result property="stuLecNo" column="STU_LEC_NO"/>
+		<result property="lecNo" column="LEC_NO"/>
+		<result property="stuLecReYn" column="STU_LEC_RE_YN"/>
+		<result property="stuLecDelYn" column="STU_LEC_DEL_YN"/>
+		<result property="stuLecDiv" column="STU_LEC_DIV"/>
+		<result property="stNo" column="ST_NO"/>
+		<result property="stuEvalTt" column="STU_EVAL_TT"/>
+		<result property="stuLecDay" column="STU_LEC_DAY"/>
+		<collection property="lectureVOList" resultMap="lectureListMap"></collection>
+		<collection property="timeExchangeManageVOList" resultMap="timeExchangeManageVOMap"></collection>
+	</resultMap>
+
+	<!-- 내 강의 목록 -->
+	<select id="myLecture" resultMap="stuLectureList" parameterType="String">
+		SELECT 
+		    ROWNUM AS SU_NUM
+			, S.STU_LEC_NO
+		    , S.LEC_NO
+		    , S.STU_LEC_DIV
+		    , S.ST_NO
+		    , L.LEC_NO L_LEC_NO
+		    , L.LEC_COL
+			, L.LEC_NAME
+            , T.LEC_DAY
+		    , T.LEC_ST
+		    , T.LEC_END
+		    , R.LEC_RO_NAME
+		FROM STU_LECTURE S 
+		    JOIN LECTURE L 
+		        ON S.LEC_NO = L.LEC_NO
+		    JOIN LEC_TIME T
+		        ON T.LEC_NO = L.LEC_NO
+		    JOIN LECTURE_ROOM R
+		        ON L.LEC_RO_NO = R.LEC_RO_NO
+		WHERE S.STU_LEC_DEL_YN = 'N'
+		AND S.ST_NO = #{st_no}
+        AND (
+            ((TO_CHAR(SYSDATE, 'MM') BETWEEN '01' AND '03') AND L.LEC_SEMESTER = '1')
+            OR 
+            ((TO_CHAR(SYSDATE, 'MM') BETWEEN '06' AND '09') AND L.LEC_SEMESTER = '2')
+        )
+        AND L.LEC_YEAR = TO_CHAR(SYSDATE, 'YYYY')
+		ORDER BY SU_NUM ASC
+	</select>
+	
+	<resultMap type="studentVO" id="studentVOMap">
+		<result property="stNo" column="ST_NO"/>
+		<result property="stGender" column="ST_GENDER"/>
+		<result property="stPostno" column="ST_POSTNO"/>
+		<result property="stAddr" column="ST_ADDR"/>
+		<result property="stAddrDet" column="ST_ADDR_DET"/>
+		<result property="stAcount" column="ST_ACOUNT"/>
+		<result property="stBank" column="ST_BANK"/>
+		<result property="militaryService" column="MILITARY_SERVICE"/>
+		<result property="stEmail" column="ST_EMAIL"/>
+		<result property="proChaNo" column="PRO_CHA_NO"/>
+		<result property="admissionDate" column="ADMISSION_DATE"/>
+		<result property="stGradDate" column="ST_GRAD_DATE"/>
+		<result property="deptCode" column="DEPT_CODE"/>
+		<result property="stGrade" column="ST_GRADE"/>
+		<result property="stSemester" column="ST_SEMESTER"/>
+		
+		<collection property="userInfoVO" resultMap="userInfoVOMap"></collection>
+		<collection property="comDetCodeVO" resultMap="comDetCodeVOMap"></collection>
+		<collection property="stuAttachFileVO" resultMap="stuAttachFileVOMap"></collection>
+	</resultMap>
+	
+	<!-- 내 학년, 학기 -->
+	<select id="studentVO" resultMap="studentVOMap" parameterType="String">
+		SELECT 
+		    S.ST_GRADE
+		    , S.ST_SEMESTER
+		FROM STUDENT S
+		    JOIN USER_INFO U
+		        ON S.ST_NO = U.USER_NO
+		WHERE U.ENABLED = '1'
+		AND S.ST_NO = #{stNo}
+	</select>
+	
+	
+	<resultMap type="userInfoVO" id="userInfoVOMap">
+		<result property="userNo" column="USER_NO"/>
+		<result property="userName" column="USER_NAME"/>
+		<result property="userPass" column="USER_PASS"/>
+		<result property="userTel" column="USER_TEL"/>
+		<result property="userGubun" column="USER_GUBUN"/>
+		<result property="enabled" column="ENABLED"/>
+	</resultMap>
+	
+	<resultMap type="comDetCodeVO" id="comDetCodeVOMap">
+		<result property="comDetCode" column="COM_DET_CODE"/>
+		<result property="comDetCodeName" column="COM_DET_CODE_NAME"/>
+		<result property="comDetUseYn" column="COM_DET_USE_YN"/>
+		<result property="comCode" column="COM_CODE"/>
+	</resultMap>
+
+	<!-- 수강 중인 강의 상세 정보 출력 -->	
+	<select id="myLectureDetail" resultMap="stuLectureList" parameterType="String">
+		<![CDATA[
+		WITH T AS(
+		    SELECT ROWNUM AS SU_NUM
+		        , S.STU_LEC_NO
+		        , S.LEC_NO
+		        , S.STU_LEC_DIV
+		        , S.ST_NO
+		        , L.LEC_NO L_LEC_NO
+		        , L.LEC_PER
+		        , L.LEC_COL
+		        , L.LEC_NAME
+		        , L.LEC_TYPE
+		        , L.LEC_SCORE
+		        , L.DEPT_CODE
+		        , L.PRO_NO  
+		        , FN_GET_LEC_DAY(S.ST_NO, S.STU_LEC_NO) STU_LEC_DAY
+		        , R.LEC_RO_NAME
+		        , R.LEC_R_PER
+		        , C.COM_DET_CODE
+		        , C.COM_DET_CODE_NAME
+		        , U.USER_NO
+		        , U.USER_NAME
+		        , (SELECT COUNT(*) FROM TIME_EXCHANGE_MANAGE T WHERE T.STU_LEC_NO = S.STU_LEC_NO AND T.EX_APP_YN = 'M') TIME_STU_LEC
+		    FROM STU_LECTURE S INNER JOIN LECTURE L ON(S.LEC_NO = L.LEC_NO)
+		                       INNER JOIN LECTURE_ROOM R ON(L.LEC_RO_NO = R.LEC_RO_NO)
+		                       INNER JOIN COM_DET_CODE C ON(C.COM_DET_CODE = L.DEPT_CODE)
+		                       INNER JOIN USER_INFO U ON(L.PRO_NO = U.USER_NO)
+		    WHERE S.STU_LEC_DEL_YN = 'N'
+		    AND S.ST_NO = #{stNo}
+            AND (
+	            ((TO_CHAR(SYSDATE, 'MM') BETWEEN '01' AND '03') AND L.LEC_SEMESTER = '1')
+	            OR 
+	            ((TO_CHAR(SYSDATE, 'MM') BETWEEN '06' AND '09') AND L.LEC_SEMESTER = '2')
+	        )
+	        AND L.LEC_YEAR = TO_CHAR(SYSDATE, 'YYYY')
+		)
+		SELECT T.*
+		FROM T
+		WHERE  T.TIME_STU_LEC < 1
+		ORDER BY T.SU_NUM ASC
+		]]>
+	</select>
+	
+	
+	<resultMap type="stuAttachFileVO" id="stuAttachFileVOMap">
+		<result property="stuAttNo" column="STU_ATT_NO"/>
+		<result property="stNo" column="ST_NO"/>
+		<result property="stuGubun" column="STU_GUBUN"/>
+		<result property="stuAttType" column="STU_ATT_TYPE"/>
+		<result property="stuOrigin" column="STU_ORIGIN"/>
+		<result property="stuName" column="STU_FILE_NAME"/>
+		<result property="stuFileSize" column="STU_FILE_SIZE"/>
+		<result property="stuFileDate" column="STU_FILE_DATE"/>
+		<result property="stuFilePath" column="STU_FILE_PATH"/>
+	</resultMap>
+	
+	<!-- 학번 관련 데이터 조회 -->
+	<select id="stNoFindAjax" resultMap="studentVOMap" parameterType="String">
+		SELECT 
+		    U.USER_NO
+		    , U.USER_NAME
+		    , U.USER_TEL
+		    , U.USER_GUBUN
+		    , U.ENABLED
+		    , S.ST_EMAIL
+		    , S.DEPT_CODE
+		    , S.ST_GRADE
+		    , C.COM_DET_CODE_NAME
+		    , A.STU_FILE_PATH
+		FROM USER_INFO U
+		    INNER JOIN STUDENT S ON(U.USER_NO = S.ST_NO)
+		    INNER JOIN COM_DET_CODE C ON(S.DEPT_CODE = C.COM_DET_CODE)
+		    INNER JOIN STU_ATTACH_FILE A ON(S.ST_NO = A.ST_NO)
+		WHERE U.ENABLED = '1'
+		AND U.USER_NO = #{stNoFindAjax}
+		AND U.USER_GUBUN = '01'
+	</select>
+	
+	<!-- 강의 거래 내역에 추가 -->
+	<insert id="timeExchangeManageInsert" parameterType="hashMap">
+		INSERT INTO TIME_EXCHANGE_MANAGE(TIME_EX_NO, TIME_TAKE_ID, TIME_SEND_ID, EX_REQ_DATE, EX_APP_YN, STU_LEC_NO)
+		VALUES((SELECT NVL(MAX(TIME_EX_NO),0)+1 MAX FROM TIME_EXCHANGE_MANAGE) , #{stNo}, #{loginStNo}, SYSDATE, 'M', #{stuLecNo})
+	</insert>
+	
+	
+	<resultMap type="timeExchangeManageVO" id="timeExchangeManageVOMap">
+		<result property="rn" column="RN"/>
+		<result property="timeExNo" column="TIME_EX_NO"/>
+		<result property="timeTakeId" column="TIME_TAKE_ID"/>
+		<result property="timeSendId" column="TIME_SEND_ID"/>
+		<result property="exReqDate" column="EX_REQ_DATE"/>
+		<result property="exReqDateTime" column="EX_REQ_DATE_TIME"/>
+		<result property="exAppYn" column="EX_APP_YN"/>
+		<result property="exAppDate" column="EX_APP_DATE"/>
+		<result property="exAppDateTime" column="EX_APP_DATE_TIME"/>
+		<result property="stuLecNo" column="STU_LEC_NO"/>
+	</resultMap>
+	
+	<select id="exchangeHistory" resultMap="timeExchangeManageVOMap" parameterType="hashMap">
+		SELECT Y.* FROM (SELECT  ROWNUM RN, T.*
+		FROM
+		(
+		    SELECT TIME_EX_NO
+		        , TIME_TAKE_ID
+		        , TIME_SEND_ID
+		        , TO_CHAR((EX_REQ_DATE), 'YYYY-MM-DD') EX_REQ_DATE
+		        , TO_CHAR((EX_REQ_DATE), 'hh24:mi:ss') EX_REQ_DATE_TIME
+		        , EX_APP_YN
+		        , TO_CHAR((EX_APP_DATE), 'YYYY-MM-DD') EX_APP_DATE
+		        , TO_CHAR((EX_APP_DATE), 'hh24:mi:ss') EX_APP_DATE_TIME
+		        , STU_LEC_NO
+		    FROM TIME_EXCHANGE_MANAGE
+		    WHERE (TIME_TAKE_ID = #{stNo} OR TIME_SEND_ID = #{stNo})
+		    <include refid="where"></include>
+		    ORDER BY EX_REQ_DATE DESC,EX_REQ_DATE_TIME  DESC
+		) T ) Y
+		WHERE Y.RN BETWEEN ((#{currentPage} * 10)-(10-1)) AND (#{currentPage} * 10)
+	</select>
+	
+	<!-- 전체 행수 -->
+	<select id="getTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM TIME_EXCHANGE_MANAGE
+		WHERE 1 = 1
+		AND (TIME_TAKE_ID = #{stNo} OR TIME_SEND_ID = #{stNo})
+		<include refid="where"></include>
+	</select>
+	
+	<sql id="where">
+		<if test="keyword!=null and keyword!=''">
+			<choose>
+				<when test="queGubun == 1">
+					AND (TIME_TAKE_ID = #{keyword})
+				</when>
+				<when test="queGubun == 2">
+					AND (TIME_SEND_ID = #{keyword})
+				</when>
+				<when test="queGubun == 3">
+					AND (EX_REQ_DATE = #{keyword})
+				</when>
+				<when test="queGubun == 4">
+					AND (EX_APP_DATE = #{keyword})
+				</when>
+				<when test="queGubun == 5">
+					AND (EX_APP_YN LIKE '%' || #{keyword} || '%')
+				</when>
+			</choose>
+		</if>
+	</sql>
+	
+	
+	<!-- 강의 거래 내역 update -->
+	<update id="excHisOkAjaxUpdate" parameterType="timeExchangeManageVO">
+		UPDATE TIME_EXCHANGE_MANAGE SET EX_APP_YN = #{exAppYn}, EX_APP_DATE = SYSDATE
+		WHERE TIME_EX_NO = #{timeExNo}
+	</update>
+	
+	
+	<!-- 강의 거래 완료 내 수강 내역 수정 -->
+	<update id="lectureExchangeUpdate" parameterType="timeExchangeManageVO">
+		UPDATE STU_LECTURE SET ST_NO = #{timeTakeId}
+		WHERE STU_LEC_NO = #{stuLecNo}
+	</update>
+	
+	<select id="excHisDetail" resultMap="stuLectureList" parameterType="String">
+		SELECT T.STU_LEC_NO
+		    , S.STU_LEC_DIV
+		    , L.LEC_TYPE
+		    , L.LEC_SCORE
+		    , L.DEPT_CODE
+		    , C.COM_DET_CODE_NAME
+		    , U.USER_NAME
+		    , L.LEC_PER
+		    , L.LEC_NAME
+		    , FN_GET_LEC_DAY(S.ST_NO, S.STU_LEC_NO) STU_LEC_DAY
+		    , L.LEC_RO_NO
+		    , R.LEC_RO_NAME
+		FROM TIME_EXCHANGE_MANAGE T
+		    INNER JOIN STU_LECTURE S ON(T.STU_LEC_NO = S.STU_LEC_NO)
+		    INNER JOIN LECTURE L ON(S.LEC_NO = L.LEC_NO)
+		    INNER JOIN COM_DET_CODE C ON(L.DEPT_CODE = C.COM_DET_CODE)
+		    INNER JOIN USER_INFO U ON(L.PRO_NO = U.USER_NO)
+		    INNER JOIN LECTURE_ROOM R ON(L.LEC_RO_NO = R.LEC_RO_NO)
+		WHERE TIME_EX_NO = #{timeExNo}
+	</select>
+	
+	
+	<!-- 보낸 사람 학번 가져옴 -->
+	<select id="timeSendIdComparison" resultType="String" parameterType="String">
+		SELECT TIME_SEND_ID
+		FROM TIME_EXCHANGE_MANAGE
+		WHERE TIME_EX_NO = #{timeExNo}
+	</select>
+	
+	
+	<!-- 받는 사람 학번 가져옴 -->
+	<select id="timeTakeIdComparison" resultType="String" parameterType="String">
+		SELECT TIME_TAKE_ID
+		FROM TIME_EXCHANGE_MANAGE
+		WHERE TIME_EX_NO = #{timeExNo}
+	</select>
+	
+	
+	<!-- 거래한 사람 정보 출력 -->
+	<select id="timeStudent" resultMap="studentVOMap" parameterType="String">
+		SELECT U.USER_NAME
+		    , C.COM_DET_CODE_NAME
+		    , S.ST_GRADE
+		    , S.ST_NO
+		    , U.USER_TEL
+		    , S.ST_EMAIL
+		    , A.STU_FILE_PATH
+		FROM STUDENT S
+		    INNER JOIN USER_INFO U ON(S.ST_NO = U.USER_NO)
+		    INNER JOIN COM_DET_CODE C ON(C.COM_DET_CODE = S.DEPT_CODE)
+		    INNER JOIN STU_ATTACH_FILE A ON(S.ST_NO = A.ST_NO)
+		WHERE S.ST_NO = #{searchStNo}
+	</select>
+	
+</mapper>

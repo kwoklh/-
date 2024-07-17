@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:beans="http://www.springframework.org/schema/beans" 
+xmlns:context="http://www.springframework.org/schema/context" 
+xmlns:security="http://www.springframework.org/schema/security" 
+xsi:schemaLocation="http://www.springframework.org/schema/mvc 
+http://www.springframework.org/schema/mvc/spring-mvc.xsd 
+http://www.springframework.org/schema/beans 
+http://www.springframework.org/schema/beans/spring-beans.xsd 
+http://www.springframework.org/schema/context 
+http://www.springframework.org/schema/context/spring-context.xsd 
+http://www.springframework.org/schema/security 
+http://www.springframework.org/schema/security/spring-security-4.2.xsd">
+
+<!-- servlet-context.xml : 스프링 웹(view) 설정 파일
+	뷰(JSP 웹 페이지)와 관련 있는 빈 객체를 설정함. 즉, 컨트롤러, MultipartResolver, 
+	Interceptor, URI와 관련 설정을 담는 클래스를 설정함
+ -->
+	<!-- DispatcherServlet Context: defines this servlet's request-processing infrastructure -->
+	
+	<!-- Enables the Spring MVC @Controller programming model -->
+	<!-- 
+	골뱅이Controller, 골뱅이RequestMapping 같은 애너테이션을 사용 시 필요한 빈 객체들을 자동으로 등록함
+	핸들러 어댑터의 빈 객체도 대신 등록함
+	 -->
+	<annotation-driven />
+
+	<!-- Handles HTTP GET requests for /resources/** by efficiently serving up static resources in the ${webappRoot}/resources directory -->
+	<!-- static folder설정(정적 폴더 설정)=>css, images, upload, js 
+	서버에서 앞서 처리될 필요가 없는 정적 리소스 파일을 처리하는 역할 수행
+	웹 애플리케이션의 물리적 경로 이름을 설정하고 이 경로에 정적 리소스 파일들을 저장하면
+	소스 코드나 웹 브라우저의 주소창에서 해당 리소스의 경로를 사용하여 직접 접속할 수 있음
+	정적 리소스란 클라이언트에서 요청이 들어왔을 때 요청 리소스가 아미 만들어져 있어 그대로 응답하는 것
+	mapping : 웹 요청 경로 패턴을 설정. 컨텍스트 경로를 제외한 나머지 부분의 경로와 매핑
+	location : 웹 애플리케이션 내에서 실제 요청 경로의 패턴에 해당하는 자원 위치를 설정. 위치가 여러 곳이면 각 위치를 쉼표로 구분
+	-->
+	<resources mapping="/resources/**" location="/resources/" />
+	
+	<!-- 첨부파일 전용 폴더 매핑 -->
+	<resources mapping="/upload/**" location="file:///C:/upload/" />
+
+	<!-- Resolves views selected for rendering by @Controllers to .jsp resources in the /WEB-INF/views directory -->
+	<beans:bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<beans:property name="prefix" value="/WEB-INF/views/" />
+		<beans:property name="suffix" value=".jsp" />
+		<beans:property name="order" value="2" />
+	</beans:bean>
+	
+	<!-- Tiles 설정 시작 -->
+	<beans:bean id="tilesConfigurer" 
+		class="org.springframework.web.servlet.view.tiles3.TilesConfigurer">
+		<beans:property name="definitions">
+			<beans:list>
+				<beans:value>/WEB-INF/spring/tiles-config.xml</beans:value>
+			</beans:list>
+		</beans:property>
+	</beans:bean>
+	<!-- UrlBasedViewResolver tilesViewResolver = new UrlBasedViewResolver(); -->
+	<beans:bean id="tilesViewResolver" 
+		class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+		<beans:property name="viewClass" 
+		value="org.springframework.web.servlet.view.tiles3.TilesView" />
+		<beans:property name="order" value="1" />
+	</beans:bean>
+	<!-- Tiles 설정 끝 -->
+	
+	<!-- kr.or.ddit 패키지를 컴포넌트 스캔 대상으로 함 
+	자바 클래스를 생성할 때 빈 객체를 자동으로 등록
+	component-scan : 스프링 MVC에서 사용할 빈 객체를 일일이 XML에 등록하지 않아도 필요한 애너테이션을 자동으로 인식할 수 있게 함
+	component-scan 요소를 사용하지 않으면 골뱅이Controller가 선언된 컨트롤러를 빈 객체로 등록해야 함. 또한, 의존관계가 있는 자바 클래스가 있다면
+	<bean> 요소를 이용하여 빈 객체를 일일이 등록해야 함
+	beans:bean class="...Controller"...
+	
+	component-scan 요소가 자동으로 인식하는 애너테이션
+	골뱅이Component : 특별히 역할 구분 없이 컴포넌트라고 알려 주는 역할
+	골뱅이Repository(DB 작업 관련), Service(서비스 관련), controller(MVC 컨트롤러 컴포넌트). 
+				어떤 종류의 컴포넌트인지 알려 주는 역할을 함
+	골뱅이Required : 필수 프로퍼티임을 명시
+	골뱅이Autowired : 의존 관계를 자동 설정 시 사용. 타입을 이용하여 의존하는 객체를 삽입
+	골뱅이Inject : 특정 프레임워크에 종속되지 않는 애플리케이션을 구성하는 데 사용함
+	-->
+	<context:component-scan base-package="kr.or.ddit" />
+	
+	<!-- 스프링 시큐리티 애너테이션을 활성화
+	 - pre-post-annotations="enabled" -> 골뱅이PreAuthorize, 골뱅이PostAuthorize 활성화
+	   *** PreAuthorize : 특정 메소드를 실행하기 전에 role 체킹
+	   PostAuthorize : 특정 메소드를 실행한 후에 role 체킹
+	 - secured-annotations="enabled" -> 골뱅이Secured를 활성화
+	   골뱅이Secured : 스프링 시큐리티 모듈을 지원하기 위한 애너테이션
+	 -->
+	 <security:global-method-security pre-post-annotations="enabled" 
+	 	secured-annotations="enabled" />
+</beans:beans>
+
+
+
+
+
+
+

@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.CommonNoticeMapper">
+
+	<sql id="where">
+		<if test="keyword!=null and keyword!=''">
+			<choose>
+				<when test="queGubun == 1">
+					and (COM_NOT_NAME LIKE '%' || #{keyword} || '%')
+				</when>
+				<when test="queGubun == 2">
+					and (COM_GUBUN LIKE '%' || #{keyword} || '%')
+				</when>
+				<when test="queGubun == 3">
+					and (USER_NO LIKE '%' || #{keyword} || '%')
+				</when>
+			</choose>		
+		</if>
+	</sql>
+	
+	
+	<!-- 4시14분-->
+	<resultMap type="commonNoticeVO" id="commonNoticeMap">
+		<result property="rn" column="rn"/>
+		<result property="comNotNo" column="COM_NOT_NO"/>
+		<result property="userNo" column="USER_NO"/>
+		<result property="comNotName" column="COM_NOT_NAME"/>
+		<result property="comNotCon" column="COM_NOT_CON"/>
+		<result property="comNotViews" column="COM_NOT_VIEWS"/>
+		<result property="comFirstDate" column="COM_FIRST_DATE"/>
+		<result property="comEndDate" column="COM_END_DATE"/>
+		<result property="comNotDelYn" column="COM_NOT_DEL_YN"/>
+		<result property="comGubun" column="COM_GUBUN"/>       
+		<collection property="userInfoVOList" resultMap="userInfoVOMap"></collection>
+		<collection property="comAttachFileVOList" resultMap="comAttachFileVO"></collection>
+		<collection property="comAttachDetVOList" resultMap="comAttachDetVO"></collection>
+	</resultMap>
+	
+	<resultMap type="userInfoVO" id="userInfoVOMap">
+		<result property="userNo" column="USER_NO"/>
+		<result property="userName" column="USER_NAME"/>
+		<result property="userPass" column="USER_PASS"/>
+		<result property="userTel" column="USER_TEL"/>
+		<result property="userGubun" column="USER_GUBUN"/>
+		<result property="enabled" column="ENABLED"/>
+	</resultMap>
+	
+	
+	<resultMap type="kr.or.ddit.vo.ComAttachFileVO" id="comAttachFileVO">
+		<result property="comAttMId" column="COM_ATT_M_ID"/>
+		<result property="attFileName" column="ATT_FILE_NAME"/>
+		<result property="attFileSize" column="ATT_FILE_SIZE"/>
+		<result property="attRegDate" column="ATT_REG_DATE"/>
+	</resultMap>
+	
+	<resultMap type="kr.or.ddit.vo.ComAttachDetVO" id="comAttachDetVO">
+     	<result property="comAttDetNo" column="COM_ATT_DET_NO"/>
+		<result property="comAttMId" column="COM_ATT_M_ID"/>
+		<result property="logiFileName" column="LOGI_FILE_NAME"/>
+		<result property="phyFileName" column="PHY_FILE_NAME"/>
+		<result property="phySaveRoute" column="PHY_SAVE_ROUTE"/>
+		<result property="phyRegDate" column="PHY_REG_DATE"/>
+		<result property="comAttDetSize" column="COM_ATT_DET_SIZE"/>
+		<result property="comAttDetType" column="COM_ATT_DET_TYPE"/>
+		<result property="comAttDetDelYn" column="COM_ATT_DET_DEL_YN"/>
+   </resultMap>
+
+	 
+	<resultMap type="commonNoticeVO" id="commonNoticeVOList">
+		<result property="rn" column="RN"/>
+		<result property="comGubun" column="COM_GUBUN"/>
+		<result property="comNotNo" column="COM_NOT_NO"/>
+		<result property="userNo" column="USER_NO"/>
+		<result property="comNotName" column="COM_NOT_NAME"/>
+		<result property="comNotCon" column="COM_NOT_CON"/>
+		<result property="comNotViews" column="COM_NOT_VIEWS"/>
+		<result property="comFirstDate" column="COM_FIRST_DATE"/>
+		<result property="comEndDate" column="COM_END_DATE"/>
+		<result property="comNotDelYn" column="COM_NOT_DEL_YN"/>
+<!-- 		<result property="comAttFile" column="COM_ATT_FILE"/> -->
+		<collection property="userInfoVOList" resultMap="userInfoVOMap"></collection>
+	</resultMap>
+	
+	<!-- 
+	<resultMap type="comAttachDetVO" id="comAttachDetVOList">
+		<result property="comAttDetNo" column="COM_ATT_DET_NO"/>
+		<result property="comAttMId" column="COM_ATT_M_ID"/>
+		<result property="logiFileName" column="LOGI_FILE_NAME"/>
+		<result property="phyFileName" column="PHY_FILE_NAME"/>
+		<result property="phySaveRoute" column="PHY_SAVE_ROUTE"/>
+		<result property="phyRegDate" column="PHY_REG_DATE"/>
+		<result property="comAttDetSize" column="COM_ATT_DET_SIZE"/>
+		<result property="comAttDetType" column="COM_ATT_DET_TYPE"/>
+		<result property="comAttDetDelYn" column="COM_ATT_DET_DEL_YN"/>
+		<collection property=""></collection>
+	</resultMap>
+	 -->
+	
+	<select id="list" parameterType="hashMap" resultMap="commonNoticeVOList">
+		SELECT Y.* FROM (SELECT  ROWNUM RN, T.*
+		FROM
+		(
+		    SELECT C.COM_NOT_NO
+		      ,C.USER_NO
+		      ,C.COM_NOT_NAME
+		      ,C.COM_NOT_CON
+		      ,C.COM_NOT_VIEWS
+		      ,TO_CHAR((C.COM_FIRST_DATE), 'YYYY-MM-DD') COM_FIRST_DATE
+		      ,TO_CHAR((C.COM_END_DATE), 'YYYY-MM-DD') COM_END_DATE
+		      ,C.COM_NOT_DEL_YN
+		      ,C.COM_ATT_FILE
+		      ,C.COM_GUBUN
+		      ,U.USER_NAME
+		    FROM
+		        COMMON_NOTICE C
+		        INNER JOIN USER_INFO U ON(C.USER_NO = U.USER_NO)
+		    WHERE 1=1
+		    AND C.COM_NOT_DEL_YN = 'N'
+		    <include refid="where"></include>
+		    ORDER BY TO_NUMBER(C.COM_NOT_NO) DESC
+		) T ) Y
+		      WHERE Y.RN BETWEEN ((#{currentPage} * 10)-(10-1)) AND (#{currentPage} * 10)
+	</select>
+	
+	
+	
+	<select id="getTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM COMMON_NOTICE
+		WHERE 1=1
+		<include refid="where"></include>
+	</select>
+	
+
+	<select id="attEndId" parameterType="String" resultType="String">
+		SELECT
+				    NVL(max(to_number(COM_NOT_NO))+1,'1')
+				FROM
+				    common_notice	
+		        where
+		            USER_NO =#{stNo}	
+	</select>
+
+	
+	<!-- 등록 -->
+	<insert id="createPost" parameterType="commonNoticeVO">
+	
+	<selectKey keyProperty="comNotNo" resultType="String"  order="BEFORE">
+		SELECT
+		    NVL(max(to_number(COM_NOT_NO))+1,'1')
+		FROM
+		    common_notice		
+		</selectKey>
+		
+		INSERT INTO COMMON_NOTICE (
+		    COM_NOT_NO
+		   ,USER_NO
+		   ,COM_NOT_NAME
+		   ,COM_NOT_CON
+		   ,COM_NOT_VIEWS
+		   ,COM_FIRST_DATE
+		   ,COM_END_DATE
+		   ,COM_NOT_DEL_YN
+		   <if test="comAttFile!=null and comAttFile!=''">
+		   ,COM_ATT_FILE
+		   </if>
+		   ,COM_GUBUN
+		) VALUES (
+		    #{comNotNo}
+		   ,#{userNo}
+		   ,#{comNotName}
+		   ,#{comNotCon}
+		   ,#{comNotViews}
+		   ,SYSDATE
+		   ,SYSDATE
+		   ,'N'
+		   <if test="comAttFile!=null and comAttFile!=''">
+		   ,#{comAttFileId}
+		   </if>
+		   ,'학과'
+		)
+	</insert>
+
+
+<!-- 이게 제일 마지막거 03:46 -->
+<!-- 
+	<insert id="createPost" parameterType="commonNoticeVO">
+	
+		<selectKey keyProperty="comNotNo" resultType="String"  order="BEFORE">
+		SELECT
+		    NVL(count(COM_NOT_NO)+1,'1')
+		FROM
+		    common_notice		
+		</selectKey>
+		
+		INSERT INTO COMMON_NOTICE (
+		    COM_NOT_NO
+		   ,USER_NO
+		   ,COM_NOT_NAME
+		   ,COM_NOT_CON
+		   ,COM_NOT_VIEWS
+		   ,COM_FIRST_DATE
+		   ,COM_END_DATE
+		   <if test="comAttFile!=null and comAttFile!=''">
+		   ,COM_ATT_FILE
+		   </if>
+		   ,COM_GUBUN
+		) VALUES (
+		    #{comNotNo}
+		   ,#{userNo}
+		   ,#{comNotName}
+		   ,#{comNotCon}
+		   ,#{comNotViews}
+		   ,SYSDATE
+		   ,SYSDATE
+		   <if test="comAttFile!=null and comAttFile!=''">
+		   ,#{comAttFileId}
+		   </if>
+		   ,#{comGubun}
+		)
+	</insert>
+	 -->
+
+
+<!--   2시40분 -->
+<!-- 
+	<select id="detail" parameterType="int" resultType="commonNoticeVO">
+		SELECT
+		    COM_NOT_NO
+		   ,USER_NO
+		   ,COM_NOT_NAME
+		   ,COM_NOT_CON
+		   ,COM_NOT_VIEWS
+		   ,COM_FIRST_DATE
+		   ,COM_END_DATE
+		   ,COM_NOT_DEL_YN
+		   ,COM_ATT_FILE
+		   ,COM_GUBUN
+		FROM
+		    COMMON_NOTICE
+		WHERE COM_NOT_NO = #{comNotNo}
+	</select>
+	 -->
+ 
+ 	<select id="detail" parameterType="string" resultMap="commonNoticeMap">
+ 		SELECT 
+		    A.COM_NOT_NO
+		   ,A.COM_NOT_NAME
+		   ,A.COM_NOT_CON
+		   ,A.COM_NOT_VIEWS
+		   ,TO_CHAR(A.COM_FIRST_DATE, 'YYYY-MM-DD') AS COM_FIRST_DATE
+		   ,TO_CHAR(A.COM_END_DATE, 'YYYY-MM-DD') AS COM_END_DATE
+		   ,A.COM_ATT_FILE
+		   ,A.COM_GUBUN
+		   ,B.USER_NAME
+		FROM 
+			COMMON_NOTICE A, USER_INFO B
+		WHERE 
+			A.USER_NO = B.USER_NO
+		AND A.COM_NOT_NO = #{comNotNo}
+ 	</select>
+ 	
+	<!-- 수정 실행 -->
+	<update id="updatePost" parameterType="commonNoticeVO">	
+	  UPDATE COMMON_NOTICE
+      SET
+      	  COM_NOT_NO		= #{comNotNo}
+         ,COM_NOT_NAME      = #{comNotName}
+         ,COM_NOT_CON       = #{comNotCon}
+         ,COM_END_DATE =  TO_CHAR(COM_END_DATE, 'YYYY-MM-DD') 
+         <if test="comAttFileId != 'ttbang' ">
+         ,COM_ATT_FILE      = #{comAttFileId}
+         </if>
+	  WHERE
+	  	  COM_NOT_NO = #{comNotNo}
+	</update>
+	
+	<!-- 조회수 -->
+	<update id="ViewCnt" parameterType="String" >
+       UPDATE COMMON_NOTICE
+           SET COM_NOT_VIEWS = COM_NOT_VIEWS + 1
+          WHERE COM_NOT_NO = #{comNotNo}
+   	</update>
+	
+	
+	<!-- 첨부파일  -->
+	<select id="selectFileList" parameterType="String" resultMap="commonNoticeMap">
+	SELECT 
+	   ROWNUM RN,
+       C.COM_NOT_NO
+       , C.COM_ATT_FILE
+       , A.COM_ATT_M_ID
+       , D.LOGI_FILE_NAME
+       , D.PHY_FILE_NAME
+       , D.COM_ATT_DET_SIZE
+       , D.COM_ATT_DET_TYPE
+      FROM COMMON_NOTICE C
+      INNER JOIN COM_ATTACH_FILE A ON(C.COM_ATT_FILE = A.COM_ATT_M_ID)
+      INNER JOIN COM_ATTACH_DET D ON(C.COM_ATT_FILE = D.COM_ATT_M_ID)
+      WHERE COM_NOT_NO = #{comNotNo}        <!--선택된 게시글로 들어가서 그 번호의 게시글에 있는 첨부파일 조회-->
+<!--       WHERE COM_ATT_FILE = #{comAttFileId} -->
+	</select>
+	
+	
+	<!-- 첨부파일 다운 -->
+	<select id="fileDown" parameterType="hashMap" resultType="comAttachDetVO">
+		SELECT
+	    COM_ATT_M_ID
+	   ,LOGI_FILE_NAME
+	   ,PHY_FILE_NAME
+	FROM
+	    COM_ATTACH_DET
+	where COM_ATT_M_ID = #{comAttMId}
+	</select>
+	
+	<!--파일 수정 프로시저  EXEC PROC_DELETE_FILE('A001CommonNotice153') -->
+    <select id="uploadFileDelete" statementType="CALLABLE" parameterType="String">
+        CALL PROC_DELETE_FILE(#{comAttMId})
+    </select>
+	
+	
+	
+	
+	
+	
+	
+
+</mapper>

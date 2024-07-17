@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.MainMapper">
+
+	<resultMap type="kr.or.ddit.vo.StudentVO" id="mypageMap">
+
+		<result property="stNo" column="ST_NO" />
+		<result property="stGender" column="ST_GENDER" />
+		<result property="stPostno" column="ST_POSTNO" />
+		<result property="stAddr" column="ST_ADDR" />
+		<result property="stAddrDet" column="ST_ADDR_DET" />
+		<result property="stAcount" column="ST_ACOUNT" />
+		<result property="stBank" column="ST_BANK" />
+		<result property="militaryService" column="MILITARY_SERVICE" />
+		<result property="stEmail" column="ST_EMAIL" />
+		<result property="proChaNo" column="PRO_CHA_NO" />
+		<result property="admissionDate" column="ADMISSION_DATE" />
+		<result property="stGradDate" column="ST_GRAD_DATE" />
+		<result property="deptCode" column="DEPT_CODE" />
+		<result property="stGrade" column="ST_GRADE" />
+		<association property="userInfoVO"
+			resultMap="userInfoVOMap"></association>
+		<association property="comDetCodeVO"
+			resultMap="comDetCodeVOMap"></association>
+		<association property="comCodeVO" resultMap="comCodeMap"></association>
+		<association property="stuAttachFileVO"
+			resultMap="stuAttachFileVOMap"></association>
+		<association property="studentStatVO"
+			resultMap="studentStatVOMap"></association>
+	</resultMap>
+	
+	<resultMap type="kr.or.ddit.vo.ProfessorVO" id="professorVOMap">
+		<result property="proAddr" column="PRO_ADDR"/>
+		<result property="proNo" column="PRO_NO"/>
+		<result property="empDate" column="EMP_DATE"/>
+		<result property="salary" column="SALARY"/>
+		<result property="deptCode" column="DEPT_CODE"/>
+		<result property="proStudy" column="PRO_STUDY"/>
+		<result property="proAddrDet" column="PRO_ADDR_DET"/>
+		<result property="proPostno" column="PRO_POSTNO"/>
+		<result property="proWorkYn" column="PRO_WORK_YN"/>
+		<result property="proRetireDate" column="PRO_RETIRE_DATE"/>
+		<result property="proPosition" column="PRO_POSITION"/>
+		<result property="proEmail" column="PRO_EMAIL"/>
+		<association property="comCodeVO" resultMap="comCodeMap"></association>
+		<association property="comDetCodeVO" resultMap="comDetCodeVOMap"></association>
+		<association property="userInfoVO" resultMap="userInfoVOMap"></association>
+		<association property="comAttachDetVO" resultMap="comAttachDetVOMap"></association>
+		<association property="comAttachFileVO" resultMap="comAttachFileVOMap"></association>
+	</resultMap>
+
+
+	<resultMap type="kr.or.ddit.vo.ComAttachDetVO" id="comAttachDetVOMap">
+		<result property="comAttDetNo" column="COM_ATT_DET_NO"/>
+		<result property="comAttMId" column="COM_ATT_M_ID"/>
+		<result property="logiFileName" column="LOGI_FILE_NAME"/>
+		<result property="phyFileName" column="PHY_FILE_NAME"/>
+		<result property="phySaveRoute" column="PHY_SAVE_ROUTE"/>
+		<result property="phyRegDate" column="PHY_REG_DATE"/>
+		<result property="comAttDetSize" column="COM_ATT_DET_SIZE"/>
+		<result property="comAttDetType" column="COM_ATT_DET_TYPE"/>
+		<result property="comAttDetDelYn" column="COM_ATT_DET_DEL_YN"/>
+	</resultMap>
+	
+	<resultMap type="kr.or.ddit.vo.ComAttachFileVO" id="comAttachFileVOMap">
+		<result property="comAttMId" column="COM_ATT_M_ID"/>
+		<result property="attFileName" column="ATT_FILE_NAME"/>
+		<result property="attFileSize" column="ATT_FILE_SIZE"/>
+		<result property="attRegDate" column="ATT_REG_DATE"/>
+	</resultMap>
+
+	<resultMap type="kr.or.ddit.vo.UserInfoVO" id="userInfoVOMap">
+		<result property="userNo" column="USER_NO" />
+		<result property="userName" column="USER_NAME" />
+		<result property="userPass" column="USER_PASS" />
+		<result property="userTel" column="USER_TEL" />
+		<result property="userGubun" column="USER_GUBUN" />
+		<result property="enabled" column="ENABLED" />
+	</resultMap>
+
+	<resultMap type="kr.or.ddit.vo.ComDetCodeVO"
+		id="comDetCodeVOMap">
+		<result property="comDetCode" column="COM_DET_CODE" />
+		<result property="comDetCodeName" column="COM_DET_CODE_NAME" />
+		<result property="comDetUseYn" column="COM_DET_USE_YN" />
+		<result property="comCode" column="COM_CODE" />
+	</resultMap>
+
+	<resultMap type="kr.or.ddit.vo.StuAttachFileVO"
+		id="stuAttachFileVOMap">
+		<result property="stuAttNo" column="STU_ATT_NO" />
+		<result property="stNo" column="ST_NO" />
+		<result property="stuGubun" column="STU_GUBUN" />
+		<result property="stuAttType" column="STU_ATT_TYPE" />
+		<result property="stuOrigin" column="STU_ORIGIN" />
+		<result property="stuName" column="STU_FILE_NAME" />
+		<result property="stuFileSize" column="STU_FILE_SIZE" />
+		<result property="stuFilePath" column="STU_FILE_PATH" />
+	</resultMap>
+
+	<resultMap type="kr.or.ddit.vo.StudentStatVO"
+		id="studentStatVOMap">
+		<result property="stStat" column="ST_STAT" />
+		<result property="stNo" column="ST_NO" />
+		<result property="stDate" column="ST_DATE" />
+		<result property="stSitu" column="ST_SITU" />
+		<result property="stSituDate" column="ST_SITU_DATE" />
+		<result property="stSituEndDate" column="ST_SITU_END_DATE" />
+		<!-- <result property="comAttDetNo" column="COM_ATT_DET_NO"/> -->
+		<result property="stSituStDate" column="ST_SITU_ST_DATE" />
+		<result property="stSituAppCon" column="ST_SITU_APP_CON" />
+		<result property="stSituAppFUpdDate"
+			column="ST_SITU_APP_F_UPD_DATE" />
+	</resultMap>
+
+	<resultMap type="kr.or.ddit.vo.ComCodeVO" id="comCodeMap">
+		<result property="comCode" column="COM_CODE" />
+		<result property="comCodeName" column="COM_CODE_NAME" />
+		<result property="comCodeContent" column="COM_CODE_CONTENT" />
+		<result property="comCodeUseYn" column="COM_CODE_USE_YN" />
+	</resultMap>
+	
+	<resultMap type="kr.or.ddit.vo.StuAttachFileVO" id="stuAttachFileVO">
+		<result property="stuAttNo" column="STU_ATT_NO" />
+		<result property="stNo" column="ST_NO" />
+		<result property="stuGubun" column="STU_GUBUN" />
+		<result property="stuAttType" column="STU_ATT_TYPE" />
+		<result property="stuOrigin" column="STU_ORIGIN" />
+		<result property="stuName" column="STU_FILE_NAME" />
+		<result property="stuFileSize" column="STU_FILE_SIZE" />
+		<result property="stuFileDate" column="STU_FILE_DATE" />
+		<result property="stuFilePath" column="STU_FILE_PATH" />
+		<result property="stuFileName" column="STU_FILE_NAME" />
+	</resultMap>
+
+	<select id="detail" parameterType="hashMap"
+		resultMap="mypageMap">
+
+		select a.st_no, a.st_gender, a.st_postno, a.st_addr,
+		a.st_addr_det, a.st_acount, a.st_bank, a.military_service,
+		a.st_email, a.pro_cha_no, a.admission_date, a.st_grad_date, a.st_grade,
+		b.user_name, b.user_tel, c.com_det_code_name, d.com_code_name,
+		e.stu_att_no, e.stu_att_type, e.stu_origin, e.stu_file_name,
+		e.stu_file_size,
+		e.stu_file_size, e.stu_file_date, e.stu_file_path, f.st_stat
+		from student a, user_info b, com_det_code c, com_code d, stu_attach_file
+		e, student_stat f
+		where
+		a.st_no = b.user_no
+		and a.dept_code = c.com_det_code
+		and c.com_code = d.com_code
+		and a.st_no = e.st_no (+)
+		and a.st_no = f.st_no
+		and a.st_no = #{stNo}
+
+	</select>
+	
+	<select id="detailpro" parameterType="String" resultMap="professorVOMap">
+	select 
+	a.pro_no,
+	b.user_name,
+	b.user_tel,
+	a.pro_position,
+	a.pro_email,
+	a.pro_postno,
+	a.pro_addr,
+	a.pro_addr_det,
+	c.com_code_name,
+	d.com_det_code_name,
+	a.emp_date,
+	a.pro_retire_date,
+	a.salary
+	from professor a, user_info b,
+	com_code c, com_det_code d
+	where
+	a.pro_no = b.user_no and
+	a.dept_code = d.com_det_code and
+	c.com_code = d.com_code and
+	a.pro_no = #{proNo}
+	
+	</select>
+	
+	<select id="detailProPhoto" parameterType="String" resultMap="professorVOMap">
+	
+	select a.*, b.*, c.* 
+	from com_attach_det a, com_attach_file b, professor c
+	where
+	a.com_att_m_id = b.com_att_m_id and
+	c.com_att_m_id = b.com_att_m_id and
+	c.pro_no = #{proNo}
+	
+	</select>
+
+	<!-- /* UserInfoVO(userNo=null, userName=박채연, userPass=null , userTel=010-1234-5678, 
+		userGubun=null, enabled=0, authorityVOList=null) */ -->
+
+	<!-- 아이디찾기 -->
+	<select id="findid" parameterType="userInfoVO"
+		resultType="userInfoVO">
+		select user_no from user_info
+		where user_name = #{userName}
+		and user_tel = #{userTel}
+	</select>
+
+	<!-- 비번찾기 -->
+	<select id="findpw" parameterType="hashMap" resultType="String">
+
+		select
+		student.st_no from user_info inner join student
+		on user_info.user_no =
+		student.st_no
+		where user_info.user_name = #{userName} and
+		student.st_email = #{stEmail}
+
+	</select>
+
+	<!-- 비번찾기 후 uuid로 업데이트 -->
+	<update id="updatepw" parameterType="hashMap">
+
+		update user_info set
+		user_pass = #{pwd} where user_no = #{stNo}
+
+	</update>
+	
+	  <select id="updatepage" parameterType="studentVO" statementType="CALLABLE">
+
+      call proc_update_mypage (
+      #{stNo}, #{stPostno}, #{stAddr}, #{stAddrDet}, #{stAcount},
+      #{stBank}, #{militaryService}, #{stEmail}, #{userInfoVO.userTel}, #{userInfoVO.userName} 
+      )
+
+   </select>
+   
+<!--    <insert id="insertAttach" parameterType="stuAttachFileVO"> -->
+   
+<!--     insert into stu_attach_file values ( -->
+<!-- 	(select 'SAF'|| -->
+<!-- 	case when to_number(substr(max(stu_att_no),4))+1 between 0 and 99 then '0' -->
+<!-- 	when to_number(substr(max(stu_att_no),4))+1 between 100 and 199 then '1' end -->
+<!-- 	|| to_char(to_number(substr(max(stu_att_no),4))+1)  -->
+<!-- 	from stu_attach_file), -->
+<!-- 	#{stNo},  -->
+<!-- 	'증명사진',  -->
+<!-- 	#{stuAttType}, -->
+<!-- 	#{stuOrigin},  -->
+<!-- 	#{stuName},  -->
+<!-- 	#{stuFileSize},  -->
+<!-- 	sysdate,  -->
+<!-- 	#{stuFilePath}) -->
+   
+<!--    </insert> -->
+   
+   <update id="updateAttach" parameterType="stuAttachFileVO">
+   
+   update stu_attach_file 
+	set
+	stu_gubun = #{stuGubun},
+	stu_att_type = #{stuAttType},
+	stu_origin = #{stuOrigin},
+	stu_file_name = #{stuFileName},
+	stu_file_size = #{stuFileSize},
+	stu_file_date = sysdate,
+	stu_file_path = #{stuFilePath}
+	where st_no = #{stNo}
+   
+   
+   </update>
+   
+   <select id="filedetail" parameterType="String" resultType="stuAttachFileVO">
+   
+   	select stu_att_no
+         , st_no
+         , stu_gubun
+         , stu_att_type
+         , stu_origin
+         , stu_file_name
+         , stu_file_size
+         , stu_file_date
+         , stu_file_path
+	from stu_attach_file
+	where stu_att_no = (
+	    select max(stu_att_no)
+	    from stu_attach_file
+	    where st_no = #{stNo}
+	)
+   
+   </select>
+	
+   <!-- 비밀번호 검증 -->
+   <select id="pwCheck" parameterType="String" resultType="userInfoVO">
+   	select user_no, user_name, user_pass, user_tel, user_gubun, enabled 
+   	from   user_info 
+   	where  user_no = #{userNo}
+   </select>
+   
+	<!--  비밀번호 변경 -->
+   <update id="updatepw2" parameterType="userInfoVO">
+   
+   update user_info set user_pass = #{userPass} where user_no = #{userNo}
+   
+   </update>
+   
+	<!-- 교수 업데이트 1 -->
+   <update id="updatepro" parameterType="hashMap">
+   
+    update user_info
+	set
+	user_tel = #{userTel}
+	where
+	user_no = #{proNo}
+   
+   </update>
+   
+	<!--   교수 업데이트 2 -->
+   <update id="updatepro2" parameterType="professorVO">
+   
+   	update professor
+	set
+	pro_email = #{proEmail},
+	pro_postno = #{proPostno},
+	pro_addr = #{proAddr},
+	pro_addr_det = #{proAddrDet},
+	salary = #{salary}  
+	where  
+	pro_no = #{proNo}
+   
+   </update>
+   
+   <update id="updatephoto1" parameterType="hashMap">
+   
+	update com_attach_file
+	set
+	att_file_size = #{attFileSize},
+	att_reg_date = sysdate
+	where com_att_m_id = (
+	select com_att_m_id from professor
+	where pro_no = #{proNo}
+	)
+   
+   </update>
+   
+   <update id="updatephoto2" parameterType="hashMap">
+   
+   update com_attach_det
+	set
+	logi_file_name = #{logiFileName},
+	phy_file_name = #{phyFileName},
+	phy_save_route = #{phySaveRoute},
+	phy_reg_date = sysdate,
+	com_att_det_size = #{comAttDetSize},
+	com_att_det_type = #{comAttDetType}
+	where
+	com_att_m_id = (
+	select com_att_m_id from professor
+	where pro_no = #{proNo}
+	)
+   
+   </update>
+
+	<select id="stuphoto" parameterType="studentVO">
+	
+	select b.stu_file_path  
+	from student a, stu_attach_file b
+	where a.st_no = b.st_no 
+	and a.st_no = #{stNo}
+	
+	
+	</select>
+	
+	
+	<select id="prophoto" parameterType="professorVO">
+	
+	
+	select b.phy_save_route 
+	from professor a, com_attach_det b
+	where a.com_att_m_id = b.com_att_m_id
+	and a.pro_no = #{proNo}
+	
+	</select>
+
+
+</mapper>

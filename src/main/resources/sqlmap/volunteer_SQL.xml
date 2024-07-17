@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.StudentEmploymentMapper">
+	<sql id="where">
+		<if test="keyword!=null and keyword!=''">
+			<choose>
+				<when test="queGubun == 1">
+					AND (VOL_NO LIKE '%' || #{keyword} || '%')
+				</when>
+				<when test="queGubun == 2">
+					AND (VOL_TIME LIKE '%' || #{keyword} || '%')
+				</when>
+				<when test="queGubun == 3">
+					AND (VOL_START LIKE '%' || #{keyword} || '%')
+				</when>
+				<when test="queGubun == 4">
+					AND (VOL_END LIKE '%' || #{keyword} || '%')
+				</when>
+				<when test="queGubun == 5">
+					AND (VOL_CON LIKE '%' || #{keyword} || '%')
+				</when>
+			</choose>
+		</if>
+	</sql>
+	<select id="volunteerList" resultType="volunteerVO" parameterType="hashMap">
+		SELECT T.*
+		FROM
+		(SELECT ROW_NUMBER() OVER(ORDER BY vol_no DESC) RNUM
+              , vol_no
+              , st_no
+              , vol_place
+              , vol_start
+              , vol_end
+              , vol_time
+              , vol_con
+              , von_file
+              FROM VOLUNTEER
+              WHERE 1=1
+              and ST_NO=#{stNo}
+              <include refid="where"></include>
+              )T
+              WHERE T.RNUM BETWEEN ((#{currentPage} * 10)-(10-1)) AND (#{currentPage} * 10)
+	</select>
+	
+	<select id="getTotal" resultType="int" parameterType="hashMap">
+	SELECT COUNT(*)
+	   FROM volunteer
+	    	WHERE 1=1
+    <include refid="where"></include>
+	</select>
+	
+	<select id="mainNumber" parameterType="String" resultType="String">
+	SELECT NVL(MAX(vol_no)+1,1) FROM volunteer
+	</select>
+	<select id="volTotalTime" parameterType="String" resultType="int">
+		SELECT
+		 sum(vol_time)
+		FROM
+		    volunteer
+		WHERE
+		    ST_NO=#{stNo}
+	</select>
+	<insert id="insertVolunteer" parameterType="volunteerVO">
+		INSERT INTO volunteer (
+		    vol_no
+		    , st_no
+		    , vol_place
+		    , vol_start
+		    , vol_end
+		    , vol_time
+		    , vol_con
+		    , von_file
+		) VALUES (
+		    #{volNo}
+		  , #{stNo}
+		  , #{volPlace}
+		  , #{volStart}
+		  , #{volEnd}
+		  , #{volTime}
+		  , #{volCon}
+		  , #{volFileStr}
+		)	
+	</insert>
+	
+	<resultMap type="volunteerVO" id="volDetailMap">
+		<result property="volNo" column="VOL_NO"/>
+		<result property="stNo" column="ST_NO"/>
+		<result property="volPlace" column="VOL_PLACE"/>
+		<result property="volStart" column="VOL_START"/>
+		<result property="volEnd" column="VOL_END"/>
+		<result property="volTime" column="VOL_TIME"/>
+		<result property="volCon" column="VOL_CON"/>
+		<result property="volFileName" column="VOL_FILE_NAME"/> <!--volFile(Multiple 타입) 로 받으면 안되서 VOL_FILE_NAME 대체로함  -->
+		<result property="volFileStr" column="VOL_FILE_STR"/> <!--volFile(Multiple 타입) 로 받으면 안되서 VOL_FILE_STR 대체로함  -->
+		<association property="comAttachFileVO" resultMap="comAttachFileMap"></association>
+		<association property="comAttachDetVO" resultMap="comAttachDetMap"></association>		
+	</resultMap>
+	
+	<resultMap type="comAttachFileVO" id="comAttachFileMap">
+		<result property="comAttMId" column="COM_ATT_M_ID"/>
+		<result property="attFileName" column="ATT_FILE_NAME"/>
+		<result property="attFileSize" column="ATT_FILE_SIZE"/>
+		<result property="attRegDate" column="ATT_REG_DATE"/>
+	</resultMap>
+	<resultMap type="comAttachDetVO" id="comAttachDetMap">
+		<result property="comAttDetNo" column="COM_ATT_DET_NO"/>
+		<result property="comAttMId" column="COM_ATT_M_ID"/>
+		<result property="logiFileName" column="LOGI_FILE_NAME"/>
+		<result property="phyFileName" column="PHY_FILE_NAME"/>
+		<result property="phySaveRoute" column="PHY_SAVE_ROUTE"/>
+		<result property="phyRegDate" column="PHY_REG_DATE"/>
+		<result property="comAttDetSize" column="COM_ATT_DET_SIZE"/>
+		<result property="comAttDetType" column="COM_ATT_DET_TYPE"/>
+		<result property="comAttDetDelYn" column="COM_ATT_DET_DEL_YN"/>
+	</resultMap>
+	
+	<select id="volDetail" resultMap="volDetailMap" parameterType="hashMap">
+	SELECT 
+		A.VOL_NO VOL_NO
+		, A.ST_NO ST_NO
+		, A.VOL_PLACE VOL_PLACE
+		, A.VOL_START VOL_START
+		, A.VOL_END VOL_END
+		, A.VOL_TIME VOL_TIME
+		, A.VOL_CON VOL_CON
+    	,A.VON_FILE VOL_FILE_STR
+    	,C.LOGI_FILE_NAME VOL_FILE_NAME
+    FROM VOLUNTEER A,COM_ATTACH_FILE B,COM_ATTACH_DET C
+    WHERE A.VON_FILE = B.COM_ATT_M_ID
+        and B.COM_ATT_M_ID=C.COM_ATT_M_ID
+        and A.ST_NO=#{stNo}
+        and C.COM_ATT_DET_DEL_YN='N'
+        AND A.VOL_NO=#{volNo}
+        
+	</select>
+	<update id="volUpdateAjax" parameterType="volunteerVO">
+		UPDATE volunteer
+		SET
+		    VOL_PLACE=#{volPlace}, 
+		    VOL_START=#{volStart}, 
+		    VOL_END=#{volEnd}, 
+		    VOL_TIME=#{volTime}, 
+		    VOL_CON=#{volCon}
+		WHERE
+		    vol_no = #{volNo}
+		    AND st_no = #{stNo}
+	</update>
+	<delete id="volAttachFileDelAjax" parameterType="volunteerVO">
+		DELETE FROM com_attach_file
+		WHERE
+		        com_att_m_id = #{volFileStr}	
+	</delete>
+	<delete id="volAttachDetDelAjax" parameterType="volunteerVO">
+		DELETE FROM com_attach_det
+		WHERE
+	     com_att_m_id = #{volFileStr}
+	</delete>
+</mapper>

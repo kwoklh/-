@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.CertificateMapper">
+	<sql id="where">
+		<if test="keyword!=null and keyword!=''">
+			<choose>
+				<when test="queGubun == 1">
+					AND (CERT_NM LIKE '%' || #{keyword} || '%')
+				</when>
+				<when test="queGubun == 2">
+					AND (CERT_DATE LIKE '%' || #{keyword} || '%')
+				</when>
+				<when test="queGubun == 3">
+					AND (CERT_DATE_EXP LIKE '%' || #{keyword} || '%')
+				</when>
+			</choose>
+		</if>
+	</sql>
+	<select id="certificateCount" parameterType="String" resultType="int">
+		SELECT
+		  count(*)
+		FROM
+		    certificate
+		WHERE
+		    ST_NO=#{stNo}	
+	</select>
+	<select id="certificateTotal" parameterType= "hashMap"  resultType="int">
+		SELECT
+		  COUNT(*)
+		FROM
+		    certificate
+		where
+		    1=1
+		    AND ST_NO=#{stNo}
+		<include refid="where"></include>
+	</select>
+	<resultMap type="kr.or.ddit.vo.CertificateVO" id="certificateVOListMap">
+		<result property="certCode" column="CERT_CODE"/>
+		<result property="stNo" column="ST_NO"/>
+		<result property="certNm" column="CERT_NM"/>
+		<result property="certDate" column="CERT_DATE"/>
+		<result property="certDateExp" column="CERT_DATE_EXP"/>	
+		<collection property="userInfoVOList" resultMap="userListMap"></collection>
+	</resultMap>
+	<resultMap type="userInfoVO" id="userListMap">
+		<result property="userNo" column="USER_NO"/>
+		<result property="userName" column="USER_NAME"/>
+		<result property="userPass" column="USER_PASS"/>
+		<result property="userTel" column="USER_TEL"/>
+		<result property="userGubun" column="USER_GUBUN"/>
+		<result property="enabled" column="ENABLED"/>
+	</resultMap>	
+	<select id="certificateVOList"  parameterType= "hashMap" resultMap="certificateVOListMap">
+		SELECT T.*
+		FROM (
+		    SELECT ROW_NUMBER() OVER (ORDER BY A.cert_code desc) AS RNUM,
+		           A.cert_code,
+		           A.st_no,
+		           A.cert_nm,
+		           A.cert_date,
+		           A.cert_date_exp,
+		           B.user_name,
+		           B.user_pass,
+		           B.user_tel,
+		           B.user_gubun,
+		           B.enabled
+		    FROM certificate A
+		    JOIN user_info B ON A.st_no = B.user_no
+		    WHERE 
+		    A.st_no = #{stNo}
+		    <include refid="where"></include>
+		) T
+		WHERE T.RNUM BETWEEN ((#{currentPage} * 6)-(6-1)) AND (#{currentPage} * 6)
+	</select>
+	<insert id="cerCreateAjax" parameterType="kr.or.ddit.vo.CertificateVO">
+		INSERT INTO certificate (
+		    cert_code
+		    , st_no
+		    , cert_nm
+		    , cert_date
+		    , cert_date_exp
+		) VALUES (
+		    #{certCode}
+		  , #{stNo}
+		  , #{certNm}
+		  , #{certDate}
+		  , #{certDateExp}
+		)	
+	</insert>
+	<delete id="cerDeleteAjax" parameterType="hashMap">
+		DELETE FROM certificate
+		WHERE
+		        cert_code = #{certCode}
+		    AND st_no =	#{stNo}
+	</delete>
+	<update id="cerUpdateAjax"  parameterType="hashMap">
+		UPDATE certificate
+		SET
+		   CERT_NM = #{certNm}
+		   , CERT_DATE = #{certDate}
+		   , CERT_DATE_EXP = #{certDateExp}
+		WHERE
+		    cert_code = #{certCode}
+		    AND st_no = #{stNo}
+	
+	</update>
+</mapper>

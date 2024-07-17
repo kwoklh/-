@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="schEmp">
+	<!-- 검색 조건 포함한 검색 기능 -->
+	<sql id="where">
+		<if test="keyword!=null and keyword!=''">
+			<choose>
+				<when test="queGubun == 1">
+					AND (SCH_EM_NO LIKE '%' || #{keyword} || '%')
+				</when>
+				<when test="queGubun == 2">
+					AND (SCH_EM_NAME LIKE '%' || #{keyword} || '%')
+				</when>
+				<when test="queGubun == 3">
+					AND (SCH_EM_DEPT LIKE '%' || #{keyword} || '%')
+				</when>
+				<when test="queGubun == 4">
+					AND (SCH_EM_START LIKE '%' || #{keyword} || '%')
+				</when>
+				<when test="queGubun == 5">
+					AND (SCH_EM_END LIKE '%' || #{keyword} || '%')
+				</when>
+				<when test="queGubun == 6">
+					AND (SCH_EM_SALARY LIKE '%' || #{keyword} || '%')
+				</when>
+			</choose>
+		</if>
+	</sql>
+
+	<resultMap type="kr.or.ddit.vo.SchoolEmployeeVO" id="schEmpMap">
+		<result property="schEmNo" column="SCH_EM_NO"/>
+		<result property="schEmName" column="SCH_EM_NAME"/>
+		<result property="schEmStart" column="SCH_EM_START"/>
+		<result property="schEmEnd" column="SCH_EM_END"/>
+		<result property="schEmSalary" column="SCH_EM_SALARY"/>
+		<result property="schEmDept" column="SCH_EM_DEPT"/>
+		<association property="comCodeVO" resultMap="comCodeVOMap"></association>
+		<association property="comDetCodeVO" resultMap="comDetCodeVOMap"></association>
+	</resultMap>
+	<resultMap type="kr.or.ddit.vo.ComCodeVO" id="comCodeVOMap">
+		<result property="comCode" column="COM_CODE"/>
+		<result property="comCodeName" column="COM_CODE_NAME"/>
+		<result property="comCodeContent" column="COM_CODE_CONTENT"/>
+		<result property="comCodeUseYn" column="COM_CODE_USE_YN"/>
+	</resultMap>
+	<resultMap type="kr.or.ddit.vo.ComDetCodeVO" id="comDetCodeVOMap">
+		<result property="comDetCode" column="COM_DET_CODE"/>
+		<result property="comDetCodeName" column="COM_DET_CODE_NAME"/>
+		<result property="comDetUseYn" column="COM_DET_USE_YN"/>
+		<result property="comCode" column="COM_CODE"/>
+	</resultMap>
+	
+	<select id="empList" resultMap="schEmpMap">
+		SELECT T.*
+		    FROM
+		    (
+		        SELECT
+		        ROW_NUMBER() OVER(ORDER BY sch_em_no desc) RNUM
+		          , a.sch_em_no
+		          , a.sch_em_name
+		          , TO_CHAR((a.sch_em_start), 'YYYY-MM-DD') sch_em_start
+		          , TO_CHAR((a.sch_em_end), 'YYYY-MM-DD') sch_em_end
+		          , a.sch_em_salary
+		          , a.sch_em_dept
+		          , b.com_code
+		          , b.com_code_name
+		          , b.com_code_content
+		          , b.com_code_use_yn
+		FROM
+		    school_employee a, com_code b
+		WHERE 
+		    a.sch_em_dept = b.com_code
+			<include refid="where"></include>
+		    ) T
+		WHERE T.RNUM BETWEEN ((#{currentPage}*10)-(10-1)) AND (#{currentPage}*10)
+	</select>
+	<select id="getTotal" resultType="int">
+		select 
+			count(*)
+		from
+		    school_employee
+		where 1=1
+		<include refid="where"></include>
+	</select>
+	
+	<!-- 교직원번호 자동 생성 쿼리 -->
+	<select id="schEmNo" resultType="String" parameterType="hashMap">
+		SELECT 
+		    'EMP' || #{univ} || LPAD(NVL(MAX(TO_NUMBER(SUBSTR(sch_em_no, 8, 3))), 0) + 1, 3, '0')
+		FROM 
+		    school_employee
+		WHERE 
+		    SUBSTR(sch_em_no, 4, 4) = #{univ}
+	</select>
+	
+	<insert id="createAjax">
+		INSERT INTO school_employee (
+		    sch_em_no
+		    , sch_em_name
+		    , sch_em_start
+		    , sch_em_end
+		    , sch_em_salary
+		    , sch_em_dept
+		) VALUES (
+		    #{schEmNo}
+		  , #{schEmName}
+		  , #{schEmStart}
+		  , #{schEmEnd}
+		  , #{schEmSalary}
+		  , #{schEmDept}
+		)
+	</insert>
+	
+	<select id="salaryList" resultType="hashMap">
+		SELECT 
+		    SUM(CASE WHEN SCH_EM_SALARY BETWEEN 2000 AND 2500 THEN 1 ELSE 0 END) range1,
+		    SUM(CASE WHEN SCH_EM_SALARY BETWEEN 2501 AND 3000 THEN 1 ELSE 0 END) range2,
+		    SUM(CASE WHEN SCH_EM_SALARY BETWEEN 3001 AND 3500 THEN 1 ELSE 0 END) range3,
+		    SUM(CASE WHEN SCH_EM_SALARY BETWEEN 3501 AND 4000 THEN 1 ELSE 0 END) range4
+		FROM SCHOOL_EMPLOYEE
+	</select>
+	
+	<select id="univList" resultType="hashMap">
+		select
+		    sum(case when sch_em_dept = 'D001' THEN 1 ELSE 0 END) D001,
+		    sum(case when sch_em_dept = 'D002' THEN 1 ELSE 0 END) D002,
+		    sum(case when sch_em_dept = 'D003' THEN 1 ELSE 0 END) D003,
+		    sum(case when sch_em_dept = 'D004' THEN 1 ELSE 0 END) D004,
+		    sum(case when sch_em_dept = 'D005' THEN 1 ELSE 0 END) D005,
+		    sum(case when sch_em_dept = 'D006' THEN 1 ELSE 0 END) D006
+		from school_employee
+	</select>
+</mapper>

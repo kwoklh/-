@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="attach">
+	<insert id="insertStuAttach" parameterType="kr.or.ddit.vo.StuAttachFileVO">
+		INSERT INTO stu_attach_file (
+		    stu_att_no
+		    , st_no
+		    , stu_gubun
+		    , stu_att_type
+		    , stu_origin
+		    , stu_file_name
+		    , stu_file_size
+		    , stu_file_date
+		    , stu_file_path
+		) VALUES (
+		    #{stuAttNo}
+		  , #{stNo}
+		  , #{stuGubun}
+		  , #{stuAttType}
+		  , #{stuOrigin}
+		  , #{stuName}
+		  , #{stuFileSize}
+		  , sysdate
+		  , #{stuFilePath}
+		)		
+	</insert>
+	<insert id="insertFileAttach" parameterType="comAttachFileVO">
+		INSERT INTO com_attach_file (
+		    com_att_m_id
+		    , att_file_name
+		    , att_file_size
+		    , att_reg_date
+		) VALUES (
+		    #{comAttMId}
+		  , #{attFileName}
+		  , #{attFileSize}
+		  ,sysdate
+		)
+	</insert>
+	<insert id="insertDetAttach" parameterType="comAttachDetVO">
+		INSERT INTO com_attach_det (
+		    COM_ATT_DET_NO
+		    , COM_ATT_M_ID
+		    , LOGI_FILE_NAME
+		    , PHY_FILE_NAME
+		    , PHY_SAVE_ROUTE
+		    , PHY_REG_DATE
+		    , COM_ATT_DET_SIZE
+		    , COM_ATT_DET_TYPE, COM_ATT_DET_DEL_YN
+		) VALUES (
+		    #{comAttDetNo}
+		  , #{comAttMId}
+		  , #{logiFileName}
+		  , #{phyFileName}
+		  , #{phySaveRoute}
+		  , sysdate
+		  , #{comAttDetSize}
+		  , #{comAttDetType}
+		  , 'N'
+		)	
+	</insert>
+</mapper>

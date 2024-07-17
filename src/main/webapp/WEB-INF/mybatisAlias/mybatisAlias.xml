@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<!-- 
+	[마이바티스] 스프링에서 "_"를 사용한 컬럼명을 사용 시(BOOK 테이블의 BOOK_ID)
+	카멜케이스로 읽어줌(bookId), INSERT_DATE => insertDate
+	ex) 테이블 컬러명이 member_id인 경우 jsp화면단에서 이 값을 사용 시 memberId로 사용
+	-->
+	<settings>
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+	</settings>
+	<!-- 자주 사용하는 타입의 별칭을 세팅
+	<typeAliases>
+		<typeAlias type="kr.or.ddit.vo.CommonNoticeVO" alias="commonNoticeVO" />
+		<typeAlias type="kr.or.ddit.vo.QuestionVO" alias="questionVO" />
+		<typeAlias type="kr.or.ddit.vo.UserInfoVO" alias="userInfoVO" />
+		<typeAlias type="kr.or.ddit.vo.AuthorityVO" alias="authorityVO" />
+		
+		<typeAlias type="kr.or.ddit.vo.StuLectureVO" alias="stuLectureVO" />
+		<typeAlias type="kr.or.ddit.vo.LectureVO" alias="lectureVO" />
+		<typeAlias type="kr.or.ddit.vo.LectureDetailVO" alias="lectureDetailVO" />
+		<typeAlias type="kr.or.ddit.vo.LectureRoomVO" alias="lectureRoomVO" />
+		<typeAlias type="kr.or.ddit.vo.LecTimeVO" alias="lecTimeVO" />
+		<typeAlias type="kr.or.ddit.vo.StudentVO" alias="studentVO" />
+		<typeAlias type="kr.or.ddit.vo.UserInfoVO" alias="userInfoVO" />
+		<typeAlias type="kr.or.ddit.vo.ComCodeVO" alias="comCodeVO" />
+		<typeAlias type="kr.or.ddit.vo.ComDetCodeVO" alias="comDetCodeVO" />
+		<typeAlias type="kr.or.ddit.vo.StuAttachFileVO" alias="stuAttachFileVO" />
+		<typeAlias type="kr.or.ddit.vo.BuildingInfoVO" alias="buildingInfoVO" />
+	</typeAliases>
+	 -->
+	 
+	<!-- 이렇게 두면 여기 패키지 안에 있는 클래스는 모두 자동으로 alias 처리가 됩니다! -->
+	<typeAliases>
+		<package name="kr.or.ddit.vo"/>
+	</typeAliases>
+</configuration>
+
+

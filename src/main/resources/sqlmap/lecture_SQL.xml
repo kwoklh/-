@@ -1,0 +1,512 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="lecture">
+
+	<sql id="where">
+		<if test="lecDiv != null and lecDiv != ''">
+			<choose>
+				<when test="lecDiv == 1">
+					and lec_div = '전필'
+				</when>
+				<when test="lecDiv == 2">
+					and lec_div = '전선'
+				</when>
+				<when test="lecDiv == 3">
+					and lec_div = '교필'
+				</when>
+				<when test="lecDiv == 4">
+					and lec_div = '교선'
+				</when>
+			</choose>
+		</if>
+		<if test="lecType != null and lecType != ''">
+			<choose>
+				<when test="lecType == 1">
+					and lec_type = '자연'
+				</when>
+				<when test="lecType == 2">
+					and lec_type = '인문'
+				</when>
+				<when test="lecType == 3">
+					and lec_type = '음악'
+				</when>
+				<when test="lecType == 4">
+					and lec_type = '컴퓨터'
+				</when>
+				<when test="lecType == 5">
+					and lec_type = '경영'
+				</when>
+			</choose>
+		</if>
+		<if test="lecName != null and lecName != ''">
+			and lec_name = #{lecName}
+		</if>
+		<if test="userName != null and userName != ''">
+			and user_name like '%' || #{userName} || '%'
+		</if>
+		<if test="lecScore != null and lecScore != ''">
+			and lec_score = #{lecScore}
+		</if>
+		<if test="comDetCode != null and comDetCode != ''">
+			and com_det_code like '%' || #{comDetCode} || '%'
+		</if>
+	</sql>
+
+	<resultMap type="kr.or.ddit.vo.LectureVO" id="listMap">
+		<result property="rownum" column="ROWNUM"/>
+		<result property="lecNo" column="LEC_NO"/>
+		<result property="proNo" column="PRO_NO"/>
+		<result property="lecYear" column="LEC_YEAR"/>
+		<result property="lecSemester" column="LEC_SEMESTER"/>
+		<result property="lecPer" column="LEC_PER"/>
+		<result property="lecName" column="LEC_NAME"/>
+		<result property="lecType" column="LEC_TYPE"/>
+		<result property="lecScore" column="LEC_SCORE"/>
+		<result property="lecDay" column="LEC_DAY"/>
+		<result property="deptCode" column="DEPT_CODE"/>
+		<result property="lecDiv" column="LEC_DIV"/>
+		<result property="lecCol" column="LEC_COL"/>
+		<result property="stuCount" column="STU_COUNT"/>
+		<result property="lecGrade" column="LEC_GRADE"/>
+		<association property="comDetCodeVO" resultMap="comDetCodeVOMap"></association>
+		<association property="userInfoVO" resultMap="userInfoVOMap"></association>
+		<association property="lectureRoomVO" resultMap="lectureRoomVOMap"></association>
+		<association property="lecTimeVO" resultMap="lecTimeVOMap"></association>
+	</resultMap>
+	<resultMap type="kr.or.ddit.vo.ComDetCodeVO" id="comDetCodeVOMap">
+		<result property="comDetCode" column="COM_DET_CODE"/>
+		<result property="comDetCodeName" column="COM_DET_CODE_NAME"/>
+		<result property="comDetUseYn" column="COM_DET_USE_YN"/>
+		<result property="comCode" column="COM_CODE"/>
+	</resultMap>
+	<resultMap type="kr.or.ddit.vo.UserInfoVO" id="userInfoVOMap">
+		<result property="userNo" column="USER_NO"/>
+		<result property="userName" column="USER_NAME"/>
+		<result property="userPass" column="USER_PASS"/>
+		<result property="userTel" column="USER_TEL"/>
+		<result property="userGubun" column="USER_GUBUN"/>
+		<result property="enabled" column="ENABLED"/>
+	</resultMap>
+	<resultMap type="kr.or.ddit.vo.LectureRoomVO" id="lectureRoomVOMap">
+		<result property="lecRoNo" column="LEC_RO_NO"/>
+		<result property="lecRoName" column="LEC_RO_NAME"/>
+		<result property="bldNo" column="BLD_NO"/>
+		<result property="lecRPer" column="LEC_R_PER"/>
+	</resultMap>
+	<resultMap type="kr.or.ddit.vo.LecTimeVO" id="lecTimeVOMap">
+		<result property="lecDay" column="LEC_DAY"/>
+		<result property="lecNo" column="LEC_NO"/>
+		<result property="lecSt" column="LEC_ST"/>
+		<result property="lecEnd" column="LEC_END"/>
+	</resultMap>
+
+	<select id="list" resultMap="listMap">
+		SELECT  ROWNUM AS LEC_NUM
+		    , L.LEC_NO
+		    , L.LEC_COL
+		    , L.LEC_NAME
+		    , L.LEC_TYPE
+		    , L.LEC_SCORE
+		    , L.DEPT_CODE
+		    , L.PRO_NO  
+		    , L.LEC_DIV
+		    , L.LEC_PER
+		    , L.lec_year
+		    , l.lec_semester
+		    , l.lec_grade
+		    , FN_GET_LEC_DAY2(L.LEC_NO) LEC_DAY
+		    , T.LEC_ST
+		    , T.LEC_END
+		    , R.LEC_RO_NAME
+		    , R.LEC_R_PER
+		    , C.COM_DET_CODE
+		    , C.COM_DET_CODE_NAME
+		    , U.USER_NO
+		    , U.USER_NAME
+		    , (SELECT COUNT(*) 
+		       FROM stu_lecture S 
+		       WHERE S.LEC_NO = L.LEC_NO 
+		         AND S.stu_lec_del_yn = 'N') AS STU_COUNT
+		    FROM LECTURE L INNER JOIN LEC_TIME T ON(L.LEC_NO = T.LEC_NO)
+		                   INNER JOIN LECTURE_ROOM R ON(L.LEC_RO_NO = R.LEC_RO_NO)
+		                   INNER JOIN COM_DET_CODE C ON(C.COM_DET_CODE = L.DEPT_CODE)
+		                   INNER JOIN USER_INFO U ON(L.PRO_NO = U.USER_NO)
+		    where l.lec_year = TO_CHAR(SYSDATE, 'YYYY')
+		    AND (
+		        (TO_CHAR(SYSDATE, 'MM') BETWEEN '01' AND '03' AND L.LEC_SEMESTER = '1')
+		        OR (TO_CHAR(SYSDATE, 'MM') BETWEEN '06' AND '09' AND L.LEC_SEMESTER = '2')
+		    )
+		    ORDER BY LEC_NUM ASC
+	</select>
+	<select id="searchList" resultMap="listMap">
+		SELECT  ROWNUM AS LEC_NUM
+		    , L.LEC_NO
+		    , L.LEC_COL
+		    , L.LEC_NAME
+		    , L.LEC_TYPE
+		    , L.LEC_SCORE
+		    , L.DEPT_CODE
+		    , L.PRO_NO  
+		    , L.LEC_DIV
+		    , L.LEC_PER
+		    , L.lec_year
+		    , l.lec_semester
+		    , l.lec_grade
+		    , FN_GET_LEC_DAY2(L.LEC_NO) LEC_DAY
+		    , T.LEC_ST
+		    , T.LEC_END
+		    , R.LEC_RO_NAME
+		    , R.LEC_R_PER
+		    , C.COM_DET_CODE
+		    , C.COM_DET_CODE_NAME
+		    , U.USER_NO
+		    , U.USER_NAME
+		    , (SELECT COUNT(*) 
+		       FROM stu_lecture S 
+		       WHERE S.LEC_NO = L.LEC_NO 
+		         AND S.stu_lec_del_yn = 'N') AS STU_COUNT
+		    FROM LECTURE L INNER JOIN LEC_TIME T ON(L.LEC_NO = T.LEC_NO)
+		                   INNER JOIN LECTURE_ROOM R ON(L.LEC_RO_NO = R.LEC_RO_NO)
+		                   INNER JOIN COM_DET_CODE C ON(C.COM_DET_CODE = L.DEPT_CODE)
+		                   INNER JOIN USER_INFO U ON(L.PRO_NO = U.USER_NO)
+		    where l.lec_year = TO_CHAR(SYSDATE, 'YYYY')
+		    AND (
+		        (TO_CHAR(SYSDATE, 'MM') BETWEEN '01' AND '03' AND L.LEC_SEMESTER = '1')
+		        OR (TO_CHAR(SYSDATE, 'MM') BETWEEN '06' AND '09' AND L.LEC_SEMESTER = '2')
+		    )
+		<include refid="where"></include>
+		ORDER BY LEC_NUM ASC
+	</select>
+	
+	<resultMap type="kr.or.ddit.vo.StuLecCartVO" id="cartListMap">
+		<result property="stuLecCartCode" column="STU_LEC_CART_CODE"/>
+		<result property="lecNo" column="LEC_NO"/>
+		<result property="stNo" column="ST_NO"/>
+		<result property="stuLecDay" column="STU_LEC_DAY"/>
+		<collection property="lectureVOList" resultMap="lectureVOMap"></collection>
+		<collection property="userInfoVOList" resultMap="userInfoVOMap"></collection>
+		<collection property="lectureRoomVOList" resultMap="lectureRoomVOMap"></collection>
+		<collection property="lecTimeVOList" resultMap="lecTimeVOMap"></collection>
+		<collection property="comDetCodeVOList" resultMap="comDetCodeVOMap"></collection>
+	</resultMap>
+	<resultMap type="kr.or.ddit.vo.LectureVO" id="lectureVOMap">
+		<result property="lecNo" column="LEC_NO"/>
+		<result property="proNo" column="PRO_NO"/>
+		<result property="lecYear" column="LEC_YEAR"/>
+		<result property="lecSemester" column="LEC_SEMESTER"/>
+		<result property="lecPer" column="LEC_PER"/>
+		<result property="lecName" column="LEC_NAME"/>
+		<result property="lecType" column="LEC_TYPE"/>
+		<result property="lecScore" column="LEC_SCORE"/>
+		<result property="deptCode" column="DEPT_CODE"/>
+		<result property="lecDiv" column="LEC_DIV"/>
+		<result property="lecCol" column="LEC_COL"/>
+		<result property="stuCount" column="STU_COUNT"/>
+		<result property="lecGrade" column="LEC_GRADE"/>
+	</resultMap>
+	
+	<select id="cartList" resultMap="cartListMap" parameterType="String">
+		SELECT ROWNUM AS SU_NUM
+         , S.STU_LEC_CART_CODE
+            , S.LEC_NO
+            , S.ST_NO
+          , L.LEC_NO L_LEC_NO
+            , L.LEC_PER
+          , L.LEC_COL
+         , L.LEC_NAME
+            , L.LEC_TYPE
+            , L.LEC_SCORE
+            , L.DEPT_CODE
+            , L.PRO_NO  
+            , L.LEC_DIV
+            , L.LEC_GRADE
+            , FN_GET_LEC_DAY1(S.ST_NO, S.LEC_NO) STU_LEC_DAY
+          , R.LEC_RO_NAME
+            , R.LEC_R_PER
+            , U.USER_NO
+            , U.USER_NAME
+      		, C.COM_DET_CODE_NAME
+      FROM stu_lec_cart S INNER JOIN LECTURE L ON(S.LEC_NO = L.LEC_NO)
+                           INNER JOIN LECTURE_ROOM R ON(L.LEC_RO_NO = R.LEC_RO_NO)
+                           INNER JOIN USER_INFO U ON(L.PRO_NO = U.USER_NO)
+                           INNER JOIN COM_DET_CODE C ON(L.DEPT_CODE = c.com_det_code)
+      WHERE S.ST_NO = #{stNo}
+      ORDER BY SU_NUM ASC
+	</select>
+	
+	<select id="countLec" parameterType="String" resultType="int">
+		select count(*) from stu_lec_cart
+		where ST_NO = #{stNo}
+	</select>
+	
+	<select id="sumLecScore" parameterType="String" resultType="int">
+		select NVL(sum(b.lec_score), 0) from stu_lec_cart a, lecture b
+		where a.lec_no = b.lec_no
+		and ST_NO = #{stNo}
+	</select>
+	
+	<insert id="insertCart" parameterType="hashMap">
+		INSERT INTO stu_lec_cart (
+		    stu_lec_cart_code
+		    , lec_no
+		    , st_no
+		) VALUES (
+			#{cartNo}
+			, #{lecNo}
+			, #{stNo}
+		)
+	</insert>
+	
+	<delete id="deleteCart" parameterType="hashMap">
+		DELETE FROM stu_lec_cart
+		WHERE
+		        stu_lec_cart_code = #{cartNo}
+		    AND lec_no = #{lecNo}
+		    AND st_no = #{stNo}
+	</delete>
+	
+	<select id="junpil" parameterType="String" resultType="int">
+		select NVL(sum(b.lec_score),0) from stu_lecture a, lecture b
+		where a.lec_no = b.lec_no
+        and b.lec_year != TO_CHAR(SYSDATE, 'YYYY')
+		and stu_lec_div = '전필'
+		and a.stu_lec_del_yn = 'N'
+		and st_no = #{stNo}
+	</select>
+	
+	<select id="junsun" parameterType="String" resultType="int">
+		select NVL(sum(b.lec_score),0) from stu_lecture a, lecture b
+		where a.lec_no = b.lec_no
+        and b.lec_year != TO_CHAR(SYSDATE, 'YYYY')
+		and stu_lec_div = '전선'
+		and a.stu_lec_del_yn = 'N'
+		and st_no = #{stNo}
+	</select>
+	
+	<select id="gyopil" parameterType="String" resultType="int">
+		select NVL(sum(b.lec_score),0) from stu_lecture a, lecture b
+		where a.lec_no = b.lec_no
+        and b.lec_year != TO_CHAR(SYSDATE, 'YYYY')
+		and stu_lec_div = '교필'
+		and a.stu_lec_del_yn = 'N'
+		and st_no = #{stNo}
+	</select>
+	
+	<select id="gyosun" parameterType="String" resultType="int">
+		select NVL(sum(b.lec_score),0) from stu_lecture a, lecture b
+		where a.lec_no = b.lec_no
+        and b.lec_year != TO_CHAR(SYSDATE, 'YYYY')
+		and stu_lec_div = '교선'
+		and a.stu_lec_del_yn = 'N'
+		and st_no = #{stNo}
+	</select>
+	
+	<select id="myLecCart" resultMap="cartListMap" parameterType="String">
+		SELECT 
+		    ROWNUM
+		    , S.STU_LEC_CART_CODE
+		    , S.LEC_NO
+		    , S.ST_NO
+		    , L.LEC_NO L_LEC_NO
+		    , L.LEC_GRADE
+		    , L.LEC_COL
+		    , L.LEC_NAME
+		    , T.LEC_DAY
+		    , T.LEC_ST
+		    , T.LEC_END
+		    , R.LEC_RO_NAME
+		FROM STU_LEC_CART S JOIN LECTURE L ON S.LEC_NO = L.LEC_NO
+		    JOIN LEC_TIME T ON T.LEC_NO = L.LEC_NO
+		    JOIN LECTURE_ROOM R ON L.LEC_RO_NO = R.LEC_RO_NO
+		WHERE S.ST_NO = #{stNo}
+		ORDER BY rownum ASC
+	</select>
+	
+	<resultMap type="kr.or.ddit.vo.StuLectureVO" id="myLecListMap">
+		<result property="stuLecNo" column="STU_LEC_NO"/>
+		<result property="lecNo" column="LEC_NO"/>
+		<result property="stuLecReYn" column="STU_LEC_RE_YN"/>
+		<result property="stuLecDelYn" column="STU_LEC_DEL_YN"/>
+		<result property="stuLecDiv" column="STU_LEC_DIV"/>
+		<result property="stNo" column="ST_NO"/>
+		<result property="stuEvalTt" column="STU_EVAL_TT"/>
+		<result property="stuLecDay" column="STU_LEC_DAY"/>
+		<collection property="lectureVOList" resultMap="listMap"></collection>
+		<collection property="lecTimeVOList" resultMap="lecTimeVOMap"></collection>
+	</resultMap>
+	
+	<select id="myLecList" resultMap="myLecListMap" parameterType="String">
+		SELECT ROWNUM AS SU_NUM
+           , S.STU_LEC_NO
+           , S.LEC_NO
+           , S.STU_LEC_DIV
+           , S.ST_NO
+           , L.LEC_PER
+           , L.LEC_COL
+           , L.LEC_NAME
+           , L.LEC_TYPE
+           , L.LEC_SCORE
+           , L.DEPT_CODE
+           , L.PRO_NO  
+           , L.LEC_GRADE
+           , FN_GET_LEC_DAY(S.ST_NO, S.STU_LEC_NO) STU_LEC_DAY
+           , R.LEC_RO_NAME
+           , R.LEC_R_PER
+           , C.COM_DET_CODE
+           , C.COM_DET_CODE_NAME
+           , U.USER_NO
+           , U.USER_NAME
+           , T.LEC_DAY
+           , T.LEC_ST
+           , T.LEC_END
+       FROM STU_LECTURE S INNER JOIN LECTURE L ON(S.LEC_NO = L.LEC_NO)
+                          INNER JOIN LECTURE_ROOM R ON(L.LEC_RO_NO = R.LEC_RO_NO)
+                          INNER JOIN COM_DET_CODE C ON(C.COM_DET_CODE = L.DEPT_CODE)
+                          INNER JOIN USER_INFO U ON(L.PRO_NO = U.USER_NO)
+                          INNER JOIN LEC_TIME T ON(S.LEC_NO = T.LEC_NO)
+       WHERE S.STU_LEC_DEL_YN = 'N'
+       AND S.ST_NO = #{stNo}
+		ORDER BY SU_NUM ASC
+	</select>
+	
+	<select id="lecCount" parameterType="String" resultType="int">
+		SELECT count(a.stu_lec_no) FROM STU_LECTURE a, lecture b
+		WHERE ST_NO = #{stNo}
+		and a.lec_no = b.lec_no
+		and b.lec_year = TO_CHAR(SYSDATE, 'YYYY')
+		and stu_lec_del_yn = 'N'
+	</select>
+	
+	<select id="lecSum" parameterType="String" resultType="int">
+		select NVL(sum(b.lec_score), 0) from stu_lecture a, lecture b
+		where a.lec_no = b.lec_no
+		and b.lec_year = TO_CHAR(SYSDATE, 'YYYY')
+		and stu_lec_del_yn = 'N'
+		and ST_NO = #{stNo}
+	</select>
+	
+	<insert id="insertMyLec" parameterType="hashMap">
+		<selectKey resultType="String" order="BEFORE" keyProperty="stuLecNo">
+			SELECT 'EXAMPLE' || LPAD(NVL(MAX(TO_NUMBER(SUBSTR(stu_lec_no, 8))), 0) + 1, 3, '0') FROM stu_lecture
+		</selectKey>
+		INSERT INTO stu_lecture (
+		    stu_lec_no
+		    , lec_no
+		    , stu_lec_re_yn
+		    , stu_lec_del_yn
+		    , stu_lec_div
+		    , st_no
+		) VALUES (
+		    #{stuLecNo}
+		  , #{lecNo}
+		  , 'N'
+		  , 'N'
+		  , #{lecDiv}
+		  , #{stNo}
+		)
+	</insert>
+	
+	<update id="deleteMyLec" parameterType="hashMap">
+		UPDATE stu_lecture
+		SET
+		    stu_lec_del_yn = 'Y'
+		WHERE lec_no = #{lecNo}
+		AND st_no = #{stNo}
+	</update>
+	
+	<resultMap type="kr.or.ddit.vo.LectureVO" id="lecInfoMap">
+		<result property="rownum" column="ROWNUM"/>
+		<result property="lecNo" column="LEC_NO"/>
+		<result property="proNo" column="PRO_NO"/>
+		<result property="lecYear" column="LEC_YEAR"/>
+		<result property="lecSemester" column="LEC_SEMESTER"/>
+		<result property="lecPer" column="LEC_PER"/>
+		<result property="lecName" column="LEC_NAME"/>
+		<result property="lecType" column="LEC_TYPE"/>
+		<result property="lecScore" column="LEC_SCORE"/>
+		<result property="lecDay" column="LEC_DAY"/>
+		<result property="deptCode" column="DEPT_CODE"/>
+		<result property="lecDiv" column="LEC_DIV"/>
+		<result property="lecCol" column="LEC_COL"/>
+		<result property="stuCount" column="STU_COUNT"/>
+		<result property="lecGrade" column="LEC_GRADE"/>
+		<association property="lecTimeVO" resultMap="lecTimeVOMap"></association>
+	</resultMap>
+	
+	<select id="lecInfo" parameterType="hashMap" resultMap="lecInfoMap">
+		select a.lec_no
+		    , a.lec_name
+		    , LEC_ST
+		    , LEC_END 
+		    , LEC_DAY
+		    , LEC_GRADE
+		from lecture a, lec_time b
+		where a.lec_no = b.lec_no
+		and a.lec_no = #{lecNo}
+	</select>
+	
+	<select id="myInfo" parameterType="String" resultType="kr.or.ddit.vo.StudentVO">
+		select st_grade from student
+		where st_no = #{stNo}
+	</select>
+	
+	<sql id="requirement">
+		<if test="div != null and div != ''">
+			<choose>
+				<when test="div == 1">
+					and lec_div = '전필'
+				</when>
+				<when test="div == 2">
+					and lec_div = '전선'
+				</when>
+				<when test="div == 3">
+					and lec_div = '교필'
+				</when>
+				<when test="div == 4">
+					and lec_div = '교선'
+				</when>
+			</choose>
+		</if>
+		<if test="dept != null and dept != ''">
+			and dept_code = #{dept}
+		</if>
+		<if test="year != null and year != ''">
+			and lec_year = #{year}
+		</if>
+		<if test="grade != null and grade != ''">
+			and lec_grade = #{grade}
+		</if>
+		<if test="semester != null and semester != ''">
+			and lec_semester = #{semester}
+		</if>
+		<if test="lecName != null and lecName != ''">
+			and lec_name like '%' || #{lecName} || '%'
+		</if>
+	</sql>
+	
+	<select id="searchHandbookList" parameterType="hashMap" resultMap="listMap">
+		SELECT  ROWNUM AS LEC_NUM
+			, L.LEC_NO
+			, L.LEC_NAME
+			, L.LEC_TYPE
+			, L.LEC_SCORE
+			, L.LEC_DIV
+			, L.LEC_PER
+			, L.lec_year
+			, l.lec_semester
+			, l.lec_grade
+			, FN_GET_LEC_DAY2(L.LEC_NO) LEC_DAY
+			, R.LEC_RO_NAME
+			, R.LEC_R_PER
+			, C.COM_DET_CODE_NAME
+			, U.USER_NAME
+			FROM LECTURE L INNER JOIN LEC_TIME T ON(L.LEC_NO = T.LEC_NO)
+			               INNER JOIN LECTURE_ROOM R ON(L.LEC_RO_NO = R.LEC_RO_NO)
+			               INNER JOIN COM_DET_CODE C ON(C.COM_DET_CODE = L.DEPT_CODE)
+			               INNER JOIN USER_INFO U ON(L.PRO_NO = U.USER_NO)
+            where 1=1
+            <include refid="requirement"></include>
+			ORDER BY LEC_NUM ASC
+	</select>
+	
+</mapper>

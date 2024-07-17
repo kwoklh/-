@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.NoticeMapper">
+	<sql id="where">
+		<if test="keyword!=null and keyword!=''">
+			<choose>
+				<when test="queGubun == 1">
+					AND (QUE_TITLE LIKE '%' || #{keyword} || '%')
+				</when>
+				<when test="queGubun == 2">
+					AND (QUE_GUBUN LIKE '%' || #{keyword} || '%')
+				</when>
+			</choose>
+		</if>
+	</sql>
+	
+	<resultMap type="questionVO" id="noticeListMap">
+		<result property="queNo" column="QUE_NO"/>
+		<result property="queTitle" column="QUE_TITLE"/>
+		<result property="queContent" column="QUE_CONTENT"/>
+		<result property="queGubun" column="QUE_GUBUN"/>
+		<result property="queDate" column="QUE_DATE"/>
+		<result property="queUserId" column="QUE_USER_ID"/>
+		<result property="queFDate" column="QUE_F_DATE"/>
+		<result property="queFUserId" column="QUE_F_USER_ID"/>
+		<result property="queYn" column="QUE_YN"/>
+		<result property="queDelYn" column="QUE_DEL_YN"/>
+		<collection property="userInfoVOList" resultMap="userListMap"></collection>
+	</resultMap>
+	
+	<resultMap type="userInfoVO" id="userListMap">
+		<result property="userNo" column="USER_NO"/>
+		<result property="userName" column="USER_NAME"/>
+		<result property="userPass" column="USER_PASS"/>
+		<result property="userTel" column="USER_TEL"/>
+		<result property="userGubun" column="USER_GUBUN"/>
+		<result property="enabled" column="ENABLED"/>
+	</resultMap>
+	
+	<select id="noticeList" resultMap="noticeListMap" parameterType="hashMap">
+		SELECT T.*
+		FROM
+		(
+			SELECT  ROW_NUMBER() OVER(ORDER BY TO_NUMBER(QUE_NO) DESC) RNUM
+			    , Q.QUE_NO
+			    , Q.QUE_TITLE
+			    , Q.QUE_CONTENT
+			    , Q.QUE_GUBUN
+			    , TO_CHAR((Q.QUE_DATE), 'YYYY-MM-DD') QUE_DATE
+			    , Q.QUE_USER_ID
+			    , Q.QUE_YN
+			    , Q.QUE_ATT_FILE 
+			    , U.USER_NO
+			    , RPAD(SUBSTR(U.USER_NAME, 0, 1), LENGTH(U.USER_NAME)+1, '*') USER_NAME
+			FROM QUESTION Q INNER JOIN USER_INFO U ON Q.QUE_USER_ID = U.USER_NO
+			WHERE Q.QUE_DEL_YN = 'N'
+			<include refid="where"></include>
+			ORDER BY TO_NUMBER(QUE_NO) DESC
+		) T
+		WHERE T.RNUM BETWEEN ((#{currentPage} * 10)-(10-1)) AND (#{currentPage} * 10)
+	</select>
+
+	<!-- 전체 행수 -->
+	<select id="getTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM QUESTION
+		WHERE 1 = 1
+		<include refid="where"></include>
+	</select>
+</mapper>

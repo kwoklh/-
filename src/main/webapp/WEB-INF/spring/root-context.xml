@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.1.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	<!-- 
+	root-context.xml : 스프링 설정 파일
+	서블릿과 필터가 공유할 수 있는 루트 스프링 컨테이너 설정으로, 공통 빈(Service, Repository(DAO), DB, Log 등)을 설정함.
+	공통빈을 설정하는 곳으로 주로 View 지원을 제외한 bean을 설정함
+	
+	스프링 설정?
+	view와 관련되지 않은 객체를 정의
+	Service(기능), DAO(Repository : 저장소), DB등 비즈니스 로직과 관련된 설정
+	BasicDataSource dataSource = new BasicDataSource();
+	dataSource.setDriverClassName() = "oracle.jdbc.driver.OracleDriver";
+	 -->
+	 <!-- dataSource : 데이터베이스와 관련된 정보를 설정 -->
+	<!-- 
+	db : database(개념. 공유/저장/통합/운영). RDB(Relational DB.관계형DB)
+	dbms : database management system(DB관리시스템.오라클)
+	localhost=127.0.0.1=내ip주소
+	xe : express(OracleXE11g.r2) => SID(sequence ID)
+	 -->
+	<!-- 
+	BasicDataSource dataSource = new dataSource();
+	dataSource.setDriverClassName("oracle.jdbc.driver.OracleDriver");
+	dataSource.setUrl("jdbc:oracle:thin:@localhost:1521:xe");
+	 -->
+	<bean id="uploadFolder" class="java.lang.String">
+		<constructor-arg value="D:\\spring\\workspace\\dditUniv\\src\\main\\webapp\\resources\\upload"></constructor-arg>
+	</bean>
+	 
+	<bean id="dataSource"
+		class="org.apache.commons.dbcp2.BasicDataSource"
+	>
+		<property name="driverClassName" 
+			value="oracle.jdbc.driver.OracleDriver"></property>
+		<property name="url"
+			value="jdbc:oracle:thin:@112.220.114.130:1521:xe"></property>
+		<property name="username" value="team3_202312F"></property>
+		<property name="password" value="java"></property>
+	</bean>
+	
+	<!-- 데이터베이스와 연결을 맺고 끊어질 때까지의 
+	라이프 사이클을 관리해주는 sqlSession 객체를 생성
+	1) dataSource
+	2) 매퍼 xml의 위치 지정. / : src/main/resources/
+	 -->
+	<bean id="sqlSessionFactory"
+	class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"></property>
+		<property name="mapperLocations"
+		value="classpath:/sqlmap/**/*_SQL.xml" />
+		<property name="configLocation"
+		 value="/WEB-INF/mybatisAlias/mybatisAlias.xml" />
+	</bean>
+	<!-- 데이터베이스에 개별적으로 쿼리를 실행시키는 객체.
+		이 객체를 통해 query를 실행함
+	 -->
+	<bean id="sqlSessionTemplate"
+	class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="sqlSessionFactory" />
+	</bean>
+	
+	<!-- 파일업로드 설정
+	CommonsMultipartResolver multipartResolver = new multipartResolver();
+	multipartResolver.setMaxUploadSize(10485760);
+	multipartResolver.setDefaultEncoding("UTF-8");
+	 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- 파일업로드 용량 (20MB)-->
+		<property name="maxUploadSize" value="20971520"/>
+		<property name="defaultEncoding" value="UTF-8" />
+	</bean>
+	
+	<!-- 파일업로드 디렉토리 설정 -->
+	<bean id="uploadPath" class="java.lang.String">
+		<constructor-arg value="c:\\upload"/>
+	</bean>
+	
+	<!-- 트랜잭션 관리자의 빈을 정의 -->
+	<bean id="transactionManager" 
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	
+	<!-- 애너테이션 기반의 트랜잭션 제어를 활성화함
+	aop(Aspect Oritented Programming : 관점 지향 프로그래밍)
+	로(그), 보(안), 트(랜잭션), 에(러) => 스프링에서 알아서 함
+	 -->
+	<tx:annotation-driven/>
+	
+	<!-- Mapper 인터페이스 설정 
+	개발자가 직접 DAO를 설정하지 않아도
+	자동으로 Mapper 인터페이스를 활용하는 객체를 생성하게 됨
+	-->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="kr.or.ddit.mapper" />
+	</bean>
+	
+	<!-- 스프링 AOP 활성화 -->
+	<aop:aspectj-autoproxy></aop:aspectj-autoproxy>
+	
+	<!-- kr.or.ddit.aop 패키지를 컴포넌트 스캔 대상으로 등록 -->
+	
+	<context:component-scan base-package="kr.or.ddit.aop"></context:component-scan>
+	<import resource="security-context.xml"/>
+</beans>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

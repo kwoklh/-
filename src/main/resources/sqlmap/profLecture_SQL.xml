@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.mapper.ProfLectureMapper">
+	<resultMap type="comCodeVO" id="comCodeVOMap">
+		<result property="comCode" column="COM_CODE"/>
+		<result property="comCodeName" column="COM_CODE_NAME"/>
+		<result property="comCodeContent" column="COM_CODE_CONTENT"/>
+		<result property="comCodeUseYn" column="COM_CODE_USE_YN"/>
+	</resultMap>
+	
+	<resultMap type="comDetCodeVO" id="comDetCodeVOMap">
+		<result property="comDetCode" column="COM_DET_CODE"/>
+		<result property="comDetCodeName" column="COM_DET_CODE_NAME"/>
+		<result property="comDetUseYn" column="COM_DET_USE_YN"/>
+		<result property="comCode" column="COM_CODE"/>
+	</resultMap>
+	
+	<select id="collegeList" resultMap="comCodeVOMap">
+		SELECT
+		    com_code
+		  , com_code_name
+		  , com_code_content
+		  , com_code_use_yn
+		FROM
+		    com_code
+		WHERE
+		    COM_CODE_CONTENT = '단과대학'
+	</select>
+	
+	<select id="deptList" parameterType="String" resultMap="comDetCodeVOMap">
+		SELECT 
+		    D.COM_DET_CODE
+		    , D.COM_DET_CODE_NAME
+		    , D.COM_DET_USE_YN
+		    , D.COM_CODE
+		FROM 
+		    COM_DET_CODE D
+		INNER JOIN
+		    COM_CODE C
+		ON
+		    D.COM_CODE = C.COM_CODE
+		WHERE 
+		    D.COM_CODE = #{collegeCode}
+	</select>
+	
+	<select id="buildList" resultType="buildingInfoVO">
+		SELECT
+		    bld_no
+		  , bld_name
+		FROM
+		    building_info
+	</select>
+
+	<select id="buildSearchList" resultType="buildingInfoVO">
+		SELECT
+		    bld_no
+		  , bld_name
+		FROM
+		    building_info
+		WHERE 
+			bld_name like '%'|| #{buildSeaWord} ||'%'
+	</select>
+	
+	<select id="buildChoice" parameterType="hashMap" resultType="LectureRoomVO">
+		select
+		    lec_ro_no
+		  , lec_ro_name
+		  , bld_no
+		  , lec_ro_pic
+		  , lec_r_per
+		from 
+		    lecture_room
+		where 
+		    lec_ro_no not in (
+		                    select 
+		                    	lec_ro_no
+		                    from 
+		                    	lecture a 
+		                    join 
+		                    	lec_time b
+		                    on 
+		                    	a.lec_no = b.lec_no
+		                    where 
+		                    	a.lec_year = 2024
+		                    and a.LEC_SEMESTER = 2
+		                    and lec_day = #{lecDay0}
+		                    and lec_st BETWEEN #{lecSt0} and #{lecEnd0}
+		                    or a.lec_year = 2024
+		                    and a.LEC_SEMESTER = 2
+		                    and lec_day = #{lecDay0}
+		                    and lec_end BETWEEN #{lecSt0} and #{lecEnd0}
+		                    <if test="lecDay1!=null and lecDay1!=''">
+		                    or a.lec_year = 2024
+		                    and a.LEC_SEMESTER = 2
+		                    and lec_day = #{lecDay1}
+		                    and lec_st BETWEEN #{lecSt1} and #{lecEnd1}
+		                    or lec_day = #{lecDay1}
+		                    and lec_end BETWEEN #{lecSt1} and #{lecEnd1}
+		                    and a.lec_year = 2024
+		                    and a.LEC_SEMESTER = 2
+		                    </if>
+		                )
+		and
+		    bld_no = #{bldNo}
+	</select>
+	
+	<select id="comAttMId" resultType="String">
+		select substr(max(lec_no),1,4)||lpad((substr(max(lec_no),5)+1),3,0)
+	    from lecture
+	</select>
+	
+	<insert id="lecCreate" parameterType="LectureVO">
+		INSERT INTO lecture (
+		    lec_no
+		    , pro_no
+		    , lec_year
+		    , lec_semester
+		    , lec_per
+		    , lec_name
+		    , lec_type
+		    , lec_score
+		    , lec_file
+		    , dept_code
+		    , lec_div
+		    , lec_col
+		    , lec_ro_no
+		) VALUES (
+		    (select substr(max(lec_no),1,4)||lpad((substr(max(lec_no),5)+1),3,0)
+		    from lecture)
+		  , #{proNo}
+		  , 2024
+		  , 2
+		  , #{lecPer}
+		  , #{lecName}
+		  , #{lecType}
+		  , #{lecScore}
+		  , #{fileName}
+		  , #{deptCode}
+		  , #{lecDiv}
+		  , #{lecCol}
+		  , #{lecRoNo}
+		)
+	</insert>
+	<insert id="lecTimeCreate" parameterType="LecTimeVO">
+		INSERT INTO lec_time (
+		    lec_day
+		    , lec_no
+		    , lec_st
+		    , lec_end
+		) VALUES (
+		    #{lecDay}
+		  , (
+		    select max(lec_no)
+		    from lecture
+		    )
+		  , #{lecSt}
+		  , #{lecEnd}
+		)
+	</insert>
+	
+	<insert id="lecDetCreate" parameterType="LectureDetailVO">
+		INSERT INTO lecture_detail (
+		    lec_num
+		    , lec_date
+		    , lec_no
+		    , lec_con
+		) VALUES (
+		    #{lecNum}
+		  , #{lecDate}
+		  , #{lecNo}
+		  , #{lecCon}
+		)
+	</insert>
+	
+	<select id="lectureList" parameterType="String" resultType="LectureVO">
+		SELECT
+		    ROWNUM
+		  , lec_no
+		  , pro_no
+		  , lec_year
+		  , lec_semester
+		  , lec_per
+		  , lec_name
+		  , lec_type
+		  , lec_score
+		  , lec_file
+		  , dept_code
+		  , lec_div
+		  , lec_col
+		  , lec_ro_no
+		FROM
+		    lecture
+		WHERE 
+		    pro_no = #{proNo}
+	</select>
+	
+	<select id="achiLectureList" parameterType="String" resultType="LectureVO">
+		SELECT
+		    lec_no
+		  , pro_no
+		  , lec_year
+		  , lec_semester
+		  , lec_per
+		  , lec_name
+		  , lec_type
+		  , lec_score
+		  , lec_file
+		  , dept_code
+		  , lec_div
+		  , lec_col
+		  , lec_ro_no
+		FROM
+		    lecture
+		WHERE
+		    pro_no = #{proNo}
+		AND
+		    lec_year = TO_CHAR(SYSDATE, 'YYYY')
+		AND (
+		        (TO_CHAR(SYSDATE, 'MM') BETWEEN '03' AND '06' AND LEC_SEMESTER = '1')
+		        OR (TO_CHAR(SYSDATE, 'MM') BETWEEN '07' AND '11' AND LEC_SEMESTER = '2')
+		    )
+	</select>
+</mapper>

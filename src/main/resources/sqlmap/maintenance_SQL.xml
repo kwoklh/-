@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="maintenance">
+
+	<select id="getDeptList" parameterType="hashMap" resultType="kr.or.ddit.vo.ComDetCodeVO">
+		select com_det_code, com_det_code_name from com_det_code
+		where com_det_code like #{univ} || '%'
+	</select>
+	
+	<resultMap type="kr.or.ddit.vo.ProfessorVO" id="professorMap">
+		<result property="salary" column="SALARY"/>
+		<association property="comDetCodeVO" resultMap="comDetCodeMap"></association>
+		<association property="userInfoVO" resultMap="userInfoVOMap"></association>
+	</resultMap>
+	<resultMap type="kr.or.ddit.vo.ComDetCodeVO" id="comDetCodeMap">
+		<result property="comDetCodeName" column="COM_DET_CODE_NAME"/>
+	</resultMap>
+	<resultMap type="kr.or.ddit.vo.UserInfoVO" id="userInfoVOMap">
+		<result property="userName" column="USER_NAME"/>
+	</resultMap>
+	
+	<select id="getDataList" parameterType="hashMap" resultMap="professorMap">
+		select 
+		    a.salary
+		    , b.user_name
+		    , c.com_det_code_name 
+		from professor a, com_det_code c, user_info b
+		where a.dept_code = c.com_det_code
+		and a.pro_no = b.user_no
+		and a.dept_code = #{deptCode}
+	</select>
+
+</mapper>

@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="adminStudent">
+
+	<resultMap type="kr.or.ddit.vo.ComCodeVO" id="deptListMap">
+		<result property="comCode" column="COM_CODE"/>
+		<result property="comCodeName" column="COM_CODE_NAME"/>
+		<result property="comCodeContent" column="COM_CODE_CONTENT"/>
+		<result property="comCodeUseYn" column="COM_CODE_USE_YN"/>
+		<collection property="comDetCodeVOList" resultMap="comDetCodeMap"></collection>
+	</resultMap>
+	<resultMap type="kr.or.ddit.vo.ComDetCodeVO" id="comDetCodeMap">
+		<result property="comDetCode" column="COM_DET_CODE"/>
+		<result property="comDetCodeName" column="COM_DET_CODE_NAME"/>
+		<result property="comDetUseYn" column="COM_DET_USE_YN"/>
+		<result property="comCode" column="COM_CODE"/>
+	</resultMap>
+	<select id="deptList" resultMap="deptListMap">
+		SELECT
+		    a.com_code,
+		    a.com_code_name,
+		    a.com_code_content,
+		    a.com_code_use_yn,
+		    b.com_det_code,
+		    b.com_det_code_name,
+		    b.com_det_use_yn
+		FROM
+		    com_code a, com_det_code b
+		WHERE 
+			a.com_code = b.com_code
+			and com_det_code like 'D00%'
+	</select>
+	
+	<resultMap type="kr.or.ddit.vo.StudentVO" id="studentMap">
+		<result property="stNo" column="ST_NO"/>
+		<result property="stGender" column="ST_GENDER"/>
+		<result property="stPostno" column="ST_POSTNO"/>
+		<result property="stAddr" column="ST_ADDR"/>
+		<result property="stAddrDet" column="ST_ADDR_DET"/>
+		<result property="stAcount" column="ST_ACOUNT"/>
+		<result property="stBank" column="ST_BANK"/>
+		<result property="militaryService" column="MILITARY_SERVICE"/>
+		<result property="stEmail" column="ST_EMAIL"/>
+		<result property="proChaNo" column="PRO_CHA_NO"/>
+		<result property="admissionDate" column="ADMISSION_DATE"/>
+		<result property="stGradDate" column="ST_GRAD_DATE"/>
+		<result property="deptCode" column="DEPT_CODE"/>
+		<result property="stGrade" column="ST_GRADE"/>
+		<association property="userInfoVO" resultMap="userInfoMap"></association>
+		<association property="comDetCodeVO" resultMap="conDetCodeMap"></association>
+	</resultMap>
+	<resultMap type="kr.or.ddit.vo.UserInfoVO" id="userInfoMap">
+		<result property="userNo" column="USER_NO"/>
+		<result property="userName" column="USER_NAME"/>
+		<result property="userPass" column="USER_PASS"/>
+		<result property="userTel" column="USER_TEL"/>
+		<result property="userGubun" column="USER_GUBUN"/>
+		<result property="enabled" column="ENABLED"/>
+	</resultMap>
+	<resultMap type="kr.or.ddit.vo.ComDetCodeVO" id="conDetCodeMap">
+		<result property="comDetCode" column="COM_DET_CODE"/>
+		<result property="comDetCodeName" column="COM_DET_CODE_NAME"/>
+		<result property="comDetUseYn" column="COM_DET_USE_YN"/>
+		<result property="comCode" column="COM_CODE"/>
+	</resultMap>
+	<select id="stdList" parameterType="hashMap" resultMap="studentMap">
+		SELECT T.*
+		FROM
+		(SELECT
+		    ROW_NUMBER() OVER(ORDER BY a.st_no asc) RNUM,
+		    a.st_no,
+		    a.st_gender,
+		    a.st_postno,
+		    a.st_addr,
+		    a.st_addr_det,
+		    a.st_acount,
+		    a.st_bank,
+		    a.military_service,
+		    a.st_email,
+		    a.pro_cha_no,
+		    a.admission_date,
+		    a.st_grad_date,
+		    a.dept_code,
+		    a.st_grade,
+		    b.user_no,
+		    b.user_name,
+		    b.user_pass,
+		    b.user_tel,
+		    b.user_gubun,
+		    b.enabled,
+		    c.com_det_code,
+		    c.com_det_code_name,
+		    c.com_det_use_yn,
+		    c.com_code
+		FROM
+		    student a, user_info b, com_det_code c
+		WHERE a.st_no = b.user_no
+		and a.dept_code = c.com_det_code
+		and a.dept_code = #{dept}
+		ORDER BY a.st_no asc
+		) T
+		WHERE T.RNUM BETWEEN ((#{currentPage}*10)-(10-1)) AND(#{currentPage}*10)
+	</select>
+	
+	<select id="getTotal" resultType="int">
+		select count(*)
+		from student
+	</select>
+	
+	<resultMap type="kr.or.ddit.vo.StudentVO" id="studentDetailMap">
+		<result property="stNo" column="ST_NO"/>
+		<result property="stGender" column="ST_GENDER"/>
+		<result property="stPostno" column="ST_POSTNO"/>
+		<result property="stAddr" column="ST_ADDR"/>
+		<result property="stAddrDet" column="ST_ADDR_DET"/>
+		<result property="stAcount" column="ST_ACOUNT"/>
+		<result property="stBank" column="ST_BANK"/>
+		<result property="militaryService" column="MILITARY_SERVICE"/>
+		<result property="stEmail" column="ST_EMAIL"/>
+		<result property="proChaNo" column="PRO_CHA_NO"/>
+		<result property="admissionDate" column="ADMISSION_DATE"/>
+		<result property="stGradDate" column="ST_GRAD_DATE"/>
+		<result property="deptCode" column="DEPT_CODE"/>
+		<result property="stGrade" column="ST_GRADE"/>
+		<association property="userInfoVO" resultMap="userInfoMap"></association>
+		<association property="comCodeVO" resultMap="comCodeMap"></association>
+		<association property="comDetCodeVO" resultMap="conDetCodeMap"></association>
+		<association property="studentStatVO" resultMap="studentStatMap"></association>
+	</resultMap>
+	<resultMap type="kr.or.ddit.vo.ComCodeVO" id="comCodeMap">
+		<result property="comCode" column="COM_CODE"/>
+		<result property="comCodeName" column="COM_CODE_NAME"/>
+		<result property="comCodeContent" column="COM_CODE_CONTENT"/>
+		<result property="comCodeUseYn" column="COM_CODE_USE_YN"/>
+	</resultMap>
+	<resultMap type="kr.or.ddit.vo.StudentStatVO" id="studentStatMap">
+		<result property="stStat" column="ST_STAT"/>
+		<result property="stNo" column="ST_NO"/>
+		<result property="stDate" column="ST_DATE"/>
+		<result property="stSitu" column="ST_SITU"/>
+		<result property="stSituDate" column="ST_SITU_DATE"/>
+		<result property="stSituEndDate" column="ST_SITU_END_DATE"/>
+<!-- 		<result property="comAttDetNo" column="COM_ATT_DET_NO"/> -->
+		<result property="stSituStDate" column="ST_SITU_ST_DATE"/>
+		<result property="stSituAppCon" column="ST_SITU_APP_CON"/>
+		<result property="stSituAppFUpdDate" column="ST_SITU_APP_F_UPD_DATE"/>
+	</resultMap>
+	<select id="detail" parameterType="String" resultMap="studentDetailMap">
+		SELECT
+		    a.st_no,
+		    a.st_gender,
+		    a.st_postno,
+		    a.st_addr,
+		    a.st_addr_det,
+		    a.st_acount,
+		    a.st_bank,
+		    a.military_service,
+		    a.st_email,
+		    a.pro_cha_no,
+		    a.admission_date,
+		    a.st_grad_date,
+		    a.dept_code,
+		    a.st_grade,
+		    b.user_no,
+		    b.user_name,
+		    b.user_pass,
+		    b.user_tel,
+		    b.user_gubun,
+		    b.enabled,
+		    c.com_det_code,
+		    c.com_det_code_name,
+		    c.com_det_use_yn,
+		    c.com_code,
+		    d.com_code,
+		    d.com_code_name,
+		    d.com_code_content,
+		    d.com_code_use_yn,
+		    e.st_stat
+		FROM
+		    student a, user_info b, com_det_code c, com_code d, student_stat e
+		WHERE a.st_no = b.user_no
+		and a.dept_code = c.com_det_code
+		and c.com_code = d.com_code
+		and a.st_no = e.st_no(+)
+		and a.st_no = #{stNo}
+	</select>
+	
+	<select id="getCollege" resultType="kr.or.ddit.vo.ComCodeVO">
+		SELECT
+		    com_code
+		  , com_code_name
+		  , com_code_content
+		  , com_code_use_yn
+		FROM
+		    com_code
+		WHERE
+		    com_code_content = '단과대학'
+	</select>
+	
+	<select id="getDept" parameterType="hashMap" resultType="kr.or.ddit.vo.ComDetCodeVO">
+		SELECT
+		    com_det_code
+		  , com_det_code_name
+		  , com_det_use_yn
+		  , com_code
+		FROM
+		    com_det_code
+		where
+		    com_code = #{data}
+	</select>
+	
+	<select id="getStNo" parameterType="hashMap" resultType="String">
+		SELECT #{dept} || LPAD(NVL(MAX(SUBSTR(st_no, 8)), 0) + 1, 3, '0') from student
+	</select>
+	
+	<resultMap type="kr.or.ddit.vo.ProfessorVO" id="profListMap">
+		<result property="deptCode" column="DEPT_CODE"/>
+		<association property="userInfoVO" resultMap="userInfoMap"></association>
+	</resultMap>
+	
+	<select id="getProfList" parameterType="hashMap" resultMap="profListMap">
+		select user_no, user_name from professor a, user_info b
+		where DEPT_CODE = #{dept}
+		and a.pro_no = b.user_no
+	</select>
+</mapper>

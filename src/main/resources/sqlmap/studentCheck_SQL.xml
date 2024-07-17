@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.StudentCheckMapper">
+	
+	<resultMap type="kr.or.ddit.vo.StudentVO" id="stdCheckMap">
+		<result property="stNo" column="ST_NO"/>
+		<result property="stGender" column="ST_GENDER"/>
+		<result property="stPostno" column="ST_POSTNO"/>
+		<result property="stAddr" column="ST_ADDR"/>
+		<result property="stAddrDet" column="ST_ADDR_DET"/>
+		<result property="stAcount" column="ST_ACOUNT"/>
+		<result property="stBank" column="ST_BANK"/>
+		<result property="militaryService" column="MILITARY_SERVICE"/>
+		<result property="stEmail" column="ST_EMAIL"/>
+		<result property="proChaNo" column="PRO_CHA_NO"/>
+		<result property="admissionDate" column="ADMISSION_DATE"/>
+		<result property="stGradDate" column="ST_GRAD_DATE"/>
+		<result property="deptCode" column="DEPT_CODE"/>
+		<result property="stGrade" column="ST_GRADE"/>
+		<association property="userInfoVO" resultMap="userInfoVOMap"></association>
+		<association property="comDetCodeVO" resultMap="comDetCodeVOMap"></association>
+		<association property="stuAttachFileVO" resultMap="stuAttachFileVOMap"></association>
+		<association property="studentStatVO" resultMap="studentStatVOMap"></association>
+	</resultMap>
+	
+	<resultMap type="kr.or.ddit.vo.UserInfoVO" id="userInfoVOMap">
+		<result property="userNo" column="USER_NO"/>
+		<result property="userName" column="USER_NAME"/>
+		<result property="userPass" column="USER_PASS"/>
+		<result property="userTel" column="USER_TEL"/>
+		<result property="userGubun" column="USER_GUBUN"/>
+		<result property="enabled" column="ENABLED"/>
+	</resultMap>
+	
+	<resultMap type="kr.or.ddit.vo.ComDetCodeVO" id="comDetCodeVOMap">
+		<result property="comDetCode" column="COM_DET_CODE"/>
+		<result property="comDetCodeName" column="COM_DET_CODE_NAME"/>
+		<result property="comDetUseYn" column="COM_DET_USE_YN"/>
+		<result property="comCode" column="COM_CODE"/>
+	</resultMap>
+	
+	<resultMap type="kr.or.ddit.vo.StuAttachFileVO" id="stuAttachFileVOMap">
+		<result property="stuAttNo" column="STU_ATT_NO"/>
+		<result property="stNo" column="ST_NO"/>
+		<result property="stuGubun" column="STU_GUBUN"/>
+		<result property="stuAttType" column="STU_ATT_TYPE"/>
+		<result property="stuOrigin" column="STU_ORIGIN"/>
+		<result property="stuName" column="STU_FILE_NAME"/>
+		<result property="stuFileSize" column="STU_FILE_SIZE"/>
+		<result property="stuFilePath" column="STU_FILE_PATH"/>
+	</resultMap>
+	
+	<resultMap type="kr.or.ddit.vo.StudentStatVO" id="studentStatVOMap">
+		<result property="stStat" column="ST_STAT"/>
+		<result property="stNo" column="ST_NO"/>
+		<result property="stDate" column="ST_DATE"/>
+		<result property="stSitu" column="ST_SITU"/>
+		<result property="stSituDate" column="ST_SITU_DATE"/>
+		<result property="stSituEndDate" column="ST_SITU_END_DATE"/>
+<!-- 		<result property="comAttDetNo" column="COM_ATT_DET_NO"/> -->
+		<result property="stSituStDate" column="ST_SITU_ST_DATE"/>
+		<result property="stSituAppCon" column="ST_SITU_APP_CON"/>
+		<result property="stSituAppFUpdDate" column="ST_SITU_APP_F_UPD_DATE"/>
+	</resultMap>
+	
+	<!-- 목록 뷰  -->
+	<select id="list" parameterType="hashMap" resultMap="stdCheckMap">
+		SELECT
+		    A.st_no
+		  , A.st_gender
+		  , A.st_postno
+		  , A.st_addr
+		  , A.st_addr_det
+		  , A.st_acount
+		  , A.st_bank
+		  , A.military_service
+		  , A.st_email
+		  , A.pro_cha_no
+		  , A.admission_date
+		  , A.st_grad_date
+		  , A.dept_code
+		  , A.st_grade
+		  , B.user_name
+		  , B.user_pass
+		  , B.user_tel
+		  , B.user_gubun
+		  , B.enabled
+		  , C.com_det_code_name
+		  , C.com_det_use_yn
+		  , C.com_code 
+          , D.stu_att_no
+          , D.stu_gubun
+          , D.stu_att_type
+          , D.stu_origin
+          , D.stu_file_name
+          , D.stu_file_size
+          , D.stu_file_date
+          , D.stu_file_path
+
+		FROM
+		    student A, user_info B, com_det_code C, stu_attach_file D
+		WHERE A.st_no = B.user_no
+		AND A.dept_code = C.com_det_code
+        AND A.ST_NO = D.ST_NO(+)
+	</select>
+
+	<!-- detail뷰
+	//studentVO >>>>>>> StudentVO(stNo=A002, stGender=null, 
+	  -->
+	<select id="stdDetail" parameterType="hashMap" resultMap="stdCheckMap">
+	SELECT
+		    A.st_no
+		  , A.st_gender
+		  , A.st_postno
+		  , A.st_addr
+		  , A.st_addr_det
+		  , A.st_acount
+		  , A.st_bank
+		  , A.military_service
+		  , A.st_email
+		  , A.pro_cha_no
+		  , A.admission_date
+		  , A.st_grad_date
+		  , A.dept_code
+		  , A.st_grade
+		  , B.user_name
+		  , B.user_pass
+		  , B.user_tel
+		  , B.user_gubun
+		  , B.enabled
+		  , C.com_det_code_name
+		  , C.com_det_use_yn
+		  , C.com_code 
+          , D.stu_att_no
+          , D.stu_gubun
+          , D.stu_att_type
+          , D.stu_origin
+          , D.stu_file_name
+          , D.stu_file_size
+          , D.stu_file_date
+          , D.stu_file_path
+          , E.st_stat
+    
+		FROM
+		    student A, user_info B, com_det_code C, stu_attach_file D ,student_stat E
+		WHERE A.st_no = B.user_no
+		AND A.dept_code = C.com_det_code
+        AND A.ST_NO = D.ST_NO(+)
+        AND A.ST_NO = E.ST_NO
+		AND A.pro_cha_no = 'A001'
+		AND a.st_no = #{stNo}
+	</select>
+
+	<select id="searchList" parameterType="hashMap" resultMap="stdCheckMap">
+		SELECT
+			    A.st_no
+			  , A.st_gender
+			  , A.st_postno
+			  , A.st_addr
+			  , A.st_addr_det
+			  , A.st_acount
+			  , A.st_bank
+			  , A.military_service
+			  , A.st_email
+			  , A.pro_cha_no
+			  , A.admission_date
+			  , A.st_grad_date
+			  , A.dept_code
+			  , A.st_grade
+			  , B.user_name
+			  , B.user_pass
+			  , B.user_tel
+			  , B.user_gubun
+			  , B.enabled
+			  , C.com_det_code_name
+			  , C.com_det_use_yn
+			  , C.com_code 
+	          , D.stu_att_no
+	          , D.stu_gubun
+	          , D.stu_att_type
+	          , D.stu_origin
+	          , D.stu_file_name
+	          , D.stu_file_size
+	          , D.stu_file_date
+	          , D.stu_file_path
+	
+			FROM
+			    student A, user_info B, com_det_code C, stu_attach_file D
+			WHERE A.st_no = B.user_no
+			AND A.dept_code = C.com_det_code
+	        AND A.ST_NO = D.ST_NO(+)
+	        <if test="searchCnd=='userName'">
+	        	order by B.user_name asc
+	        </if>
+	        <if test="searchCnd=='stGrade'">
+	        	order by A.st_grade desc
+	        </if>
+	</select>	
+</mapper>
